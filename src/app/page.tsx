@@ -39,10 +39,11 @@ const HomePage = () => {
 		},
 	];
 
+	// Placeholder data
 	const stats = [
-		{ number: "10,000+", label: "Songs in Database" },
-		{ number: "50+", label: "Music Genres" },
-		{ number: "1M+", label: "Games Played" },
+		{ number: "100+", label: "Songs in Database" },
+		{ number: "10+", label: "Music Genres" },
+		{ number: "137+", label: "Games Played" },
 		{ number: "4.8★", label: "User Rating" },
 	];
 
