@@ -1,7 +1,8 @@
 "use client";
 import React from "react";
+import { motion } from "framer-motion";
 
-interface ButtonProps {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	label: string;
 	icon?: React.ReactNode;
 	variant?: "primary" | "secondary" | "accent";
@@ -21,8 +22,8 @@ const Button: React.FC<ButtonProps> = ({
 	children,
 }) => {
 	return (
-		<button
-			className={`text-[var(--text)] rounded-lg p-2 shadow-[0_4px_0_rgba(0,0,0,0.3)] hover:shadow-none hover:translate-y-1 active:shadow-none active:translate-y-1 transition-all duration-150 ${className}`}
+		<motion.button
+			className={`text-[var(--text)] rounded-lg p-2 shadow-[0_4px_0_rgba(0,0,0,0.3)] hover:shadow-none hover:translate-y-1 active:shadow-none transition-all duration-150 ${className}`}
 			style={{
 				backgroundColor: `var(--${variant})`,
 				color: "var(--text)",
@@ -37,7 +38,7 @@ const Button: React.FC<ButtonProps> = ({
 				</div>
 				{children}
 			</div>
-		</button>
+		</motion.button>
 	);
 };
 
