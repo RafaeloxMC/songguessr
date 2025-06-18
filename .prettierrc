@@ -1,0 +1,6 @@
+{
+    "singleQuote": false,
+    "tabWidth": 4,
+    "quoteProps": "as-needed",
+    "trailingComma": "es5"
+}
