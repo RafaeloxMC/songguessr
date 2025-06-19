@@ -47,6 +47,7 @@ export async function GET(
     const arg = await params;
     const playlistId = Array.isArray(arg.id) ? arg.id.join("/") : arg.id;
     const playlist = await PlaylistManager.getPlaylist(playlistId);
+    await connectDB();
 
     if (!playlist) {
         return NextResponse.json(

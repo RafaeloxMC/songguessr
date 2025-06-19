@@ -1,24 +1,19 @@
 export function extractSoundCloudTrackId(url: string): string {
-    // Handle API URLs
     const apiMatch = url.match(/api\.soundcloud\.com\/tracks\/(\d+)/);
     if (apiMatch) {
         return apiMatch[1];
     }
 
-    // Handle embed URLs (w.soundcloud.com)
     const embedMatch = url.match(/tracks%2F(\d+)/);
     if (embedMatch) {
         return embedMatch[1];
     }
 
-    // Handle regular SoundCloud track URLs (soundcloud.com/artist/track)
     if (
         url.includes("soundcloud.com/") &&
         !url.includes("w.soundcloud.com") &&
         !url.includes("api.soundcloud.com")
     ) {
-        // This would require SoundCloud API to resolve, but we can try to extract basic info
-        // For now, we'll return a placeholder that indicates this needs API resolution
         throw new Error(
             "Regular SoundCloud URLs require API resolution. Please use w.soundcloud.com embed URLs or API URLs."
         );
@@ -86,7 +81,6 @@ export function extractSoundCloudURL(input: string) {
     return `https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/${trackId}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false`;
 }
 
-// New function to validate various SoundCloud URL formats
 export function isValidSoundCloudUrl(url: string): boolean {
     if (!url.trim()) return false;
 
@@ -104,26 +98,21 @@ export function isValidSoundCloudUrl(url: string): boolean {
     return patterns.some((pattern) => pattern.test(url));
 }
 
-// New function to convert regular SoundCloud URLs to embed format
 export function convertToEmbedUrl(url: string): string {
-    // If it's already an embed URL, return as-is
     if (url.includes("w.soundcloud.com/player")) {
         return url;
     }
 
-    // If it's an API URL, convert to embed
     if (url.includes("api.soundcloud.com/tracks/")) {
         const trackId = extractSoundCloudTrackId(url);
         return createDefaultSCEmbedUrl(trackId);
     }
 
-    // For regular SoundCloud URLs, create embed format
     if (
         url.includes("soundcloud.com/") &&
         !url.includes("w.soundcloud.com") &&
         !url.includes("api.soundcloud.com")
     ) {
-        // Encode the original URL for the embed
         const encodedUrl = encodeURIComponent(url);
         return `https://w.soundcloud.com/player/?url=${encodedUrl}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false`;
     }
@@ -131,14 +120,12 @@ export function convertToEmbedUrl(url: string): string {
     return url;
 }
 
-// New function to extract artist and title from regular SoundCloud URLs
 export function extractInfoFromSoundCloudUrl(url: string): {
     artist?: string;
     title?: string;
 } {
     const info: { artist?: string; title?: string } = {};
 
-    // Handle regular SoundCloud URLs (soundcloud.com/artist/track)
     const regularMatch = url.match(/soundcloud\.com\/([^\/]+)\/([^\/\?]+)/);
     if (regularMatch) {
         const artist = regularMatch[1].replace(/-/g, " ");

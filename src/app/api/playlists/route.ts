@@ -4,6 +4,7 @@ import { PlaylistManager } from "@/util/PlaylistManager";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+    await connectDB();
     const playlists = await PlaylistManager.getAllPlaylists();
     return Response.json(playlists);
 }

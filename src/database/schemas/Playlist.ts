@@ -1,4 +1,4 @@
-import { MapType } from "@/util/enums/PlaylisType";
+import { MapType } from "@/util/enums/PlaylistType";
 import { Document, Types, Schema, model, models } from "mongoose";
 
 export interface IPlaylist extends Document {

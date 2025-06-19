@@ -74,7 +74,6 @@ const WidgetTest = () => {
         const url = extractSoundCloudURL(event.target.value);
         console.log("Extracted URL:", url);
         setIframeUrl(url);
-        // setIframeUrl(event.target.value);
         resetGuessState();
         setWidget(null);
         setIsWidgetReady(false);

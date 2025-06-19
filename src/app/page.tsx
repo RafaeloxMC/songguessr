@@ -66,7 +66,7 @@ const HomePage = () => {
                     <Button
                         label="Start Playing Now"
                         icon={<span>🎵</span>}
-                        onClick={() => redirect("/game")}
+                        onClick={() => redirect("/play")}
                         variant="primary"
                         className="text-xl px-4 py-2 mt-8"
                     />
@@ -182,7 +182,7 @@ const HomePage = () => {
                             <Button
                                 label="Play Now"
                                 icon={<span>🚀</span>}
-                                onClick={() => redirect("/game")}
+                                onClick={() => redirect("/play")}
                                 variant="primary"
                                 className="text-lg px-4 py-2"
                             />

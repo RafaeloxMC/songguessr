@@ -5,7 +5,7 @@ import Button from "@/components/button";
 import Card from "@/components/card";
 import SongSearch from "@/components/SongSearch";
 import { IPlaylist } from "@/database/schemas/Playlist";
-import { MapType } from "@/util/enums/PlaylisType";
+import { MapType } from "@/util/enums/PlaylistType";
 import { Difficulty } from "@/util/enums/Difficulty";
 
 interface Song {

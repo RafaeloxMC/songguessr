@@ -4,7 +4,6 @@ import Button from "@/components/button";
 import Card from "@/components/card";
 import { Difficulty } from "@/util/enums/Difficulty";
 import {
-    extractSoundCloudTrackId,
     isValidSoundCloudUrl,
     convertToEmbedUrl,
     extractInfoFromSoundCloudUrl,
@@ -48,7 +47,6 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
         setIsValidUrl(valid);
 
         if (valid) {
-            // Try to extract info from the URL
             const extractedInfo = extractInfoFromSoundCloudUrl(url);
 
             if (extractedInfo.artist || extractedInfo.title) {
@@ -94,15 +92,12 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
 
     const convertToApiUrl = (url: string): string => {
         try {
-            // If it's already an API URL, return as-is
             if (url.includes("api.soundcloud.com/tracks/")) {
                 return url;
             }
 
-            // Convert to embed format for storage
             return convertToEmbedUrl(url);
         } catch {
-            // If conversion fails, return the original URL
             return url;
         }
     };
@@ -134,7 +129,6 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
 
         onSongAdd(song);
 
-        // Reset form
         setSoundcloudUrl("");
         setSongDetails({
             difficulty: Difficulty.MEDIUM,

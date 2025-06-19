@@ -1,3 +1,4 @@
+import { connectDB } from "@/database/db";
 import Playlist from "@/database/schemas/Playlist";
 import { IPlaylist } from "@/database/schemas/Playlist";
 
@@ -11,6 +12,7 @@ export class PlaylistManager {
     public static async getPlaylist(
         id: string
     ): Promise<IPlaylist | undefined> {
+        await connectDB();
         return await Playlist.findById(id).then((playlist) => {
             return playlist?.toObject() as IPlaylist | undefined;
         });
@@ -36,6 +38,7 @@ export class PlaylistManager {
     public static async deletePlaylist(playlist: IPlaylist): Promise<boolean> {
         const { id } = playlist;
         if (!id) return false;
+        await connectDB();
 
         const result = await Playlist.deleteOne({ id });
         if (result.deletedCount === 1) {
@@ -47,6 +50,7 @@ export class PlaylistManager {
 
     public static async fetchPlaylistsFromDatabase(): Promise<void> {
         try {
+            await connectDB();
             const playlists = await Playlist.find({});
             this.playlists = playlists.map((playlist) => playlist.toObject());
         } catch (error) {
@@ -58,6 +62,7 @@ export class PlaylistManager {
         playlistData: IPlaylist
     ): Promise<IPlaylist | null> {
         try {
+            await connectDB();
             const newPlaylist = await Playlist.create(playlistData);
             this.addPlaylist(newPlaylist.id, newPlaylist.toObject());
             return newPlaylist.toObject() as IPlaylist;
