@@ -186,7 +186,6 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
                 widgetInstance.getCurrentSound(
                     (sound: SoundCloudSound | null) => {
                         if (sound) {
-                            console.log("Current sound:", sound);
                             setSongDetails((prev) => ({
                                 ...prev,
                                 title: sound.title || prev.title,
@@ -273,11 +272,10 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
                                         className="mt-2"
                                         src={`${soundcloudUrl}`}
                                         onLoad={() => {
-                                            console.log("Iframe loaded");
                                             if (window.SC) {
                                                 setTimeout(() => {
                                                     initializeWidget();
-                                                }, 1000); // Increased delay to ensure iframe content is loaded
+                                                }, 1000);
                                             }
                                         }}
                                     ></iframe>
@@ -433,10 +431,6 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
                                 variant="accent"
                                 onClick={() => {
                                     if (songDetails.startingOffset) {
-                                        console.log(
-                                            "Testing offset:",
-                                            songDetails.startingOffset
-                                        );
                                         if (widget) {
                                             widget.seekTo(
                                                 songDetails.startingOffset *

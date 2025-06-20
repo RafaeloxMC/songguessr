@@ -108,7 +108,6 @@ const GamePage = ({ params }: GamePageProps) => {
     React.useEffect(() => {
         if (data?.playlist) {
             setPlaylistData(data.playlist);
-            console.log("Fetched playlist:", data.playlist);
         }
     }, [data]);
 
@@ -147,7 +146,6 @@ const GamePage = ({ params }: GamePageProps) => {
 
         const newSongId = getRandomSong(playlist_data);
         if (newSongId) {
-            console.log(`Selecting different song: ${newSongId}`);
             setGameState((prev) => ({
                 ...prev,
                 currentSongId: newSongId,
@@ -177,7 +175,6 @@ const GamePage = ({ params }: GamePageProps) => {
             gameState.currentSongId &&
             !isSelectingNewSong
         ) {
-            console.log("Song failed to load, selecting different song");
             selectDifferentSong();
         } else if (
             !songData &&
@@ -185,7 +182,6 @@ const GamePage = ({ params }: GamePageProps) => {
             gameState.currentSongId &&
             !isSelectingNewSong
         ) {
-            console.log("Song data is null, selecting different song");
             selectDifferentSong();
         }
     }, [
@@ -239,10 +235,6 @@ const GamePage = ({ params }: GamePageProps) => {
 
                             setTimeout(() => {
                                 widgetInstance.getCurrentSound((sound) => {
-                                    console.log(
-                                        "getCurrentSound response:",
-                                        sound
-                                    ); // Add logging
                                     if (sound && sound.title) {
                                         setGameState((prev) => ({
                                             ...prev,
@@ -252,17 +244,9 @@ const GamePage = ({ params }: GamePageProps) => {
                                                 : "Unknown Artist",
                                         }));
                                     } else {
-                                        // Retry getting sound info after a longer delay
-                                        console.log(
-                                            "Sound data incomplete, retrying..."
-                                        );
                                         setTimeout(() => {
                                             widgetInstance.getCurrentSound(
                                                 (retrySound) => {
-                                                    console.log(
-                                                        "Retry getCurrentSound response:",
-                                                        retrySound
-                                                    );
                                                     if (
                                                         retrySound &&
                                                         retrySound.title
@@ -281,9 +265,6 @@ const GamePage = ({ params }: GamePageProps) => {
                                                             })
                                                         );
                                                     } else {
-                                                        console.log(
-                                                            "Failed to get sound info after retry"
-                                                        );
                                                         selectDifferentSong();
                                                     }
                                                 }
@@ -291,7 +272,7 @@ const GamePage = ({ params }: GamePageProps) => {
                                         }, 2000);
                                     }
                                 });
-                            }, 1000); // Increased from 500ms to 1000ms
+                            }, 1000);
                         });
 
                         widgetInstance.bind("error", () => {

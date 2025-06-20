@@ -7,10 +7,8 @@ export async function GET(
     { params }: { params: { id: string } }
 ) {
     const { id } = await params;
-    console.log("Fetching song with ID:", id);
     await connectDB();
     const songData = await Song.findById(id);
-    console.log("Fetched song data:", songData);
     return NextResponse.json(songData);
 }
 

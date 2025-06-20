@@ -45,7 +45,6 @@ const WidgetTest = () => {
 
     const handleUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const url = extractSoundCloudURL(event.target.value);
-        console.log("Extracted URL:", url);
         setIframeUrl(url);
         resetGuessState();
         setWidget(null);

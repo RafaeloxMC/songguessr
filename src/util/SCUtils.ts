@@ -67,13 +67,11 @@ export function extractSoundCloudURL(input: string) {
         /https:\/\/w\.soundcloud\.com\/player\/\?[^"]+/
     )?.[0];
     if (!match) {
-        console.log("No SoundCloud URL found in input");
         return "";
     }
 
     const trackIdMatch = match.match(/tracks(?:%2F|\/)(\d+)/);
     if (!trackIdMatch) {
-        console.log("No track ID found in SoundCloud URL");
         return "";
     }
 

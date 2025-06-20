@@ -19,7 +19,6 @@ export async function PATCH(
         new: true,
     }).then((playlist) => {
         if (playlist) {
-            console.log("Playlist updated successfully.");
             return NextResponse.json(
                 {
                     success: true,
@@ -28,7 +27,6 @@ export async function PATCH(
                 { status: 200 }
             );
         } else {
-            console.log("Playlist not found.");
             return NextResponse.json(
                 {
                     success: false,
@@ -102,10 +100,6 @@ export async function GET(
                 releaseYear: { $gte: startYear, $lte: endYear },
             })
                 .then((songs) => {
-                    console.log(
-                        "Songs fetched for dynamic playlist based on year range."
-                    );
-                    console.log(songs);
                     playlist.songIds = [
                         ...(playlist.songIds || []),
                         ...songs.map((song) => song._id),

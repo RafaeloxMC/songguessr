@@ -19,7 +19,6 @@ export async function POST(request: Request) {
             if (!playlist || playlist.length === 0) {
                 const res = await PlaylistManager.createPlaylist(iPlaylist);
                 if (res != undefined) {
-                    console.log("Playlist created successfully.");
                     return NextResponse.json(
                         {
                             success: true,
@@ -27,7 +26,6 @@ export async function POST(request: Request) {
                         { status: 201 }
                     );
                 } else {
-                    console.log("Playlist not created.");
                     return NextResponse.json(
                         {
                             success: false,
@@ -39,7 +37,6 @@ export async function POST(request: Request) {
                     );
                 }
             } else {
-                console.log("Playlist already exists.");
                 return NextResponse.json(
                     {
                         success: false,

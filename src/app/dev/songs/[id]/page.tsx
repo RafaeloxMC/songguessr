@@ -59,7 +59,6 @@ const SongDevPage = ({ params }: SongDevPageProps) => {
         genres: [],
     });
 
-    // Widget testing state
     const [widget, setWidget] = useState<SoundCloudWidget | null>(null);
     const [isWidgetReady, setIsWidgetReady] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -88,7 +87,6 @@ const SongDevPage = ({ params }: SongDevPageProps) => {
         }
     }, [song]);
 
-    // Load SoundCloud API
     useEffect(() => {
         if (!window.SC) {
             const script = document.createElement("script");
@@ -106,7 +104,6 @@ const SongDevPage = ({ params }: SongDevPageProps) => {
             widgetInstance.bind("ready", () => {
                 setIsWidgetReady(true);
 
-                // Get current song info
                 widgetInstance.getCurrentSound(
                     (sound: SoundCloudSound | null) => {
                         setCurrentSongInfo(sound);
@@ -207,21 +204,17 @@ const SongDevPage = ({ params }: SongDevPageProps) => {
         setIsEditing(false);
     };
 
-    // Widget testing functions
     const testPlayback = () => {
         if (!widget || !isWidgetReady) return;
 
-        // Clear any existing timeout
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
         }
 
-        // Seek to test offset and play
         widget.seekTo(testOffset * 1000);
         widget.play();
         setIsPlaying(true);
 
-        // Stop after specified duration
         timeoutRef.current = setTimeout(() => {
             widget.pause();
             setIsPlaying(false);
