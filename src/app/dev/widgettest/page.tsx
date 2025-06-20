@@ -1,35 +1,8 @@
 "use client";
+import { SoundCloudSound } from "@/util/interfaces/SoundCloudSound";
 import { extractSoundCloudURL } from "@/util/SCUtils";
+import { SoundCloudWidget } from "@/util/types/SoundCloudWidget";
 import React from "react";
-
-interface SoundCloudSound {
-    id: number;
-    title: string;
-    description?: string;
-    duration: number;
-    genre?: string;
-    user?: {
-        username: string;
-        avatar_url: string;
-    };
-    artwork_url?: string;
-    stream_url?: string;
-}
-
-type SoundCloudWidget = {
-    play: () => void;
-    pause: () => void;
-    toggle: () => void;
-    seekTo: (milliseconds: number) => void;
-    setVolume: (volume: number) => void;
-    next: () => void;
-    prev: () => void;
-    skip: (soundIndex: number) => void;
-    getCurrentSound: (
-        callback: (sound: SoundCloudSound | null) => void
-    ) => void;
-    bind: (eventName: string, callback: () => void) => void;
-};
 
 declare global {
     interface Window {

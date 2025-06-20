@@ -9,6 +9,7 @@ export interface ISong extends Document {
     title?: string;
     artist?: string;
     difficulty: Difficulty;
+    startingOffset?: number;
     playCount: number;
     correctGuesses: number;
     isActive: boolean;
@@ -49,6 +50,7 @@ const SongSchema = new Schema<ISong>(
             enum: Object.values(Difficulty),
             default: Difficulty.MEDIUM,
         },
+        startingOffset: { type: Number, default: 0, min: 0 },
         playCount: { type: Number, default: 0, min: 0 },
         correctGuesses: { type: Number, default: 0, min: 0 },
         isActive: { type: Boolean, default: true },

@@ -6,19 +6,7 @@ import Card from "@/components/card";
 import SongSearch from "@/components/SongSearch";
 import { IPlaylist } from "@/database/schemas/Playlist";
 import { MapType } from "@/util/enums/PlaylistType";
-import { Difficulty } from "@/util/enums/Difficulty";
-
-interface Song {
-    soundcloudUrl: string;
-    title?: string;
-    artist?: string;
-    difficulty: Difficulty;
-    releaseYear?: number;
-    genres?: string[];
-    mood?: string;
-    energy?: "low" | "medium" | "high";
-    popularityRange?: "mainstream" | "underground" | "viral";
-}
+import { ISong } from "@/database/schemas/Song";
 
 interface PlaylistFormData {
     name: string;
@@ -147,7 +135,7 @@ const PlaylistManagementPage = () => {
         }
     };
 
-    const handleAddSong = async (song: Song) => {
+    const handleAddSong = async (song: Partial<ISong>) => {
         if (!selectedPlaylist) return;
 
         try {
@@ -443,6 +431,7 @@ const PlaylistManagementPage = () => {
                                     <p>
                                         <strong>Image:</strong>{" "}
                                         {selectedPlaylist.imageUrl ? (
+                                            // eslint-disable-next-line @next/next/no-img-element
                                             <img
                                                 src={selectedPlaylist.imageUrl}
                                                 alt={selectedPlaylist.name}

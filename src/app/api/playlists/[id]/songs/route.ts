@@ -43,6 +43,7 @@ export async function POST(
                 title: song.title,
                 artist: song.artist,
                 difficulty: song.difficulty || "medium",
+                startingOffset: song.startingOffset || 0,
                 playCount: 0,
                 correctGuesses: 0,
                 isActive: true,
@@ -83,6 +84,41 @@ export async function POST(
         );
     } catch (error) {
         console.error("Error adding song to playlist:", error);
+        return NextResponse.json(
+            { error: "Internal server error" },
+            { status: 500 }
+        );
+    }
+}
+
+export async function GET(
+    request: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    try {
+        const { id } = await params;
+
+        if (!ObjectId.isValid(id)) {
+            return NextResponse.json(
+                { error: "Invalid playlist ID" },
+                { status: 400 }
+            );
+        }
+
+        await connectDB();
+
+        const playlist = await Playlist.findById(id).populate("songIds").exec();
+
+        if (!playlist) {
+            return NextResponse.json(
+                { error: "Playlist not found" },
+                { status: 404 }
+            );
+        }
+
+        return NextResponse.json(playlist, { status: 200 });
+    } catch (error) {
+        console.error("Error fetching playlist:", error);
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }

@@ -6,60 +6,89 @@ import { Difficulty } from "@/util/enums/Difficulty";
 import {
     isValidSoundCloudUrl,
     convertToEmbedUrl,
-    extractInfoFromSoundCloudUrl,
+    extractSoundCloudURL,
 } from "@/util/SCUtils";
+import { SoundCloudSound } from "@/util/interfaces/SoundCloudSound";
+import { ISong } from "@/database/schemas/Song";
 
-interface Song {
-    soundcloudUrl: string;
-    title?: string;
-    artist?: string;
-    difficulty: Difficulty;
-    releaseYear?: number;
-    genres?: string[];
-    mood?: string;
-    energy?: "low" | "medium" | "high";
-    popularityRange?: "mainstream" | "underground" | "viral";
+type SoundCloudWidget = {
+    play: () => void;
+    pause: () => void;
+    toggle: () => void;
+    seekTo: (milliseconds: number) => void;
+    setVolume: (volume: number) => void;
+    next: () => void;
+    prev: () => void;
+    skip: (soundIndex: number) => void;
+    getCurrentSound: (
+        callback: (sound: SoundCloudSound | null) => void
+    ) => void;
+    bind: (eventName: string, callback: () => void) => void;
+};
+
+declare global {
+    interface Window {
+        SC: {
+            Widget: (element: HTMLIFrameElement | string) => SoundCloudWidget;
+        };
+    }
 }
 
 interface SongSearchProps {
-    onSongAdd: (song: Song) => void;
+    onSongAdd: (song: Partial<ISong>) => void;
     onClose: () => void;
 }
 
 const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
     const [soundcloudUrl, setSoundcloudUrl] = useState("");
-    const [songDetails, setSongDetails] = useState<Partial<Song>>({
+    const [songDetails, setSongDetails] = useState<Partial<ISong>>({
         difficulty: Difficulty.MEDIUM,
         title: "",
         artist: "",
         genres: [],
+        startingOffset: 0,
     });
     const [currentGenre, setCurrentGenre] = useState("");
     const [isValidUrl, setIsValidUrl] = useState(false);
+    const [widget, setWidget] = useState<SoundCloudWidget | null>(null);
+    const [isWidgetReady, setIsWidgetReady] = useState(false);
+    const iframeRef = React.useRef<HTMLIFrameElement | null>(null);
+
+    React.useEffect(() => {
+        if (!window.SC) {
+            const script = document.createElement("script");
+            script.src = "https://w.soundcloud.com/player/api.js";
+            script.async = true;
+            script.onload = () => {
+                setIsWidgetReady(true);
+                initializeWidget();
+            };
+            document.head.appendChild(script);
+        }
+    }, []);
 
     const validateSoundCloudUrl = (url: string): boolean => {
         return isValidSoundCloudUrl(url);
     };
 
     const handleUrlChange = (url: string) => {
-        setSoundcloudUrl(url);
+        setSoundcloudUrl(extractSoundCloudURL(url).trim());
+        url = extractSoundCloudURL(url).trim();
         const valid = validateSoundCloudUrl(url);
         setIsValidUrl(valid);
 
         if (valid) {
-            const extractedInfo = extractInfoFromSoundCloudUrl(url);
-
-            if (extractedInfo.artist || extractedInfo.title) {
-                setSongDetails((prev) => ({
-                    ...prev,
-                    artist: prev.artist || extractedInfo.artist || "",
-                    title: prev.title || extractedInfo.title || "",
-                }));
-            }
+            setWidget(null);
+            setIsWidgetReady(false);
+            setSongDetails((prev) => ({
+                ...prev,
+                title: "",
+                artist: "",
+            }));
         }
     };
 
-    const handleDetailChange = (field: keyof Song, value: unknown) => {
+    const handleDetailChange = (field: keyof ISong, value: unknown) => {
         setSongDetails({
             ...songDetails,
             [field]: value,
@@ -115,11 +144,12 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
 
         const processedUrl = convertToApiUrl(soundcloudUrl);
 
-        const song: Song = {
+        const song: Partial<ISong> = {
             soundcloudUrl: processedUrl,
             title: songDetails.title?.trim(),
             artist: songDetails.artist?.trim(),
             difficulty: songDetails.difficulty || Difficulty.MEDIUM,
+            startingOffset: songDetails.startingOffset || 0,
             releaseYear: songDetails.releaseYear,
             genres: songDetails.genres || [],
             mood: songDetails.mood?.trim() || undefined,
@@ -135,13 +165,44 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
             title: "",
             artist: "",
             genres: [],
+            startingOffset: 0,
         });
         setCurrentGenre("");
         setIsValidUrl(false);
     };
 
+    const initializeWidget = React.useCallback(() => {
+        if (iframeRef.current && window.SC && !widget) {
+            console.log("Initializing widget...");
+            const widgetInstance = window.SC.Widget(iframeRef.current);
+            setWidget(widgetInstance);
+
+            widgetInstance.bind("ready", () => {
+                console.log("Widget ready!");
+                setIsWidgetReady(true);
+            });
+
+            setTimeout(() => {
+                widgetInstance.getCurrentSound(
+                    (sound: SoundCloudSound | null) => {
+                        if (sound) {
+                            console.log("Current sound:", sound);
+                            setSongDetails((prev) => ({
+                                ...prev,
+                                title: sound.title || prev.title,
+                                artist: sound.user?.username || prev.artist,
+                            }));
+                        } else {
+                            console.warn("No current sound found");
+                        }
+                    }
+                );
+            }, 0);
+        }
+    }, [isWidgetReady, widget]);
+
     return (
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 max-h-screen overflow-y-auto">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-[var(--text)]">
                     🎵 Add New Song
@@ -155,7 +216,7 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
             </div>
 
             <Card variant="primary">
-                <div className="space-y-4">
+                <div className="space-y-4 max-h-96 overflow-y-auto">
                     <div>
                         <label className="block text-sm font-medium mb-2 text-[var(--text)]">
                             SoundCloud URL *
@@ -180,7 +241,7 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
                                         : "var(--secondary)",
                                 color: "var(--text)",
                             }}
-                            placeholder="Paste any SoundCloud URL here (e.g., https://soundcloud.com/artist/track or https://w.soundcloud.com/player/?url=...)"
+                            placeholder="Paste any SoundCloud URL here (https://w.soundcloud.com/player/?url=...)"
                         />
                         <div className="mt-2 text-sm">
                             {soundcloudUrl.trim() === "" && (
@@ -191,32 +252,39 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
                             {soundcloudUrl.trim() === "" && (
                                 <ul className="text-[var(--text-secondary)] list-disc list-inside mt-1 space-y-1">
                                     <li>
-                                        Regular SoundCloud URLs:{" "}
-                                        <code>
-                                            https://soundcloud.com/artist/track
-                                        </code>
-                                    </li>
-                                    <li>
                                         Embed URLs:{" "}
                                         <code>
                                             https://w.soundcloud.com/player/?url=...
                                         </code>
                                     </li>
-                                    <li>
-                                        API URLs:{" "}
-                                        <code>
-                                            https://api.soundcloud.com/tracks/123456
-                                        </code>
-                                    </li>
                                 </ul>
                             )}
                             {soundcloudUrl.trim() !== "" && isValidUrl && (
-                                <p className="text-green-600 flex items-center">
-                                    ✅ Valid SoundCloud URL detected
-                                </p>
+                                <div>
+                                    <p className="text-green-600">
+                                        ✅ Valid SoundCloud URL detected
+                                    </p>
+
+                                    <iframe
+                                        ref={iframeRef}
+                                        width="100%"
+                                        height="166"
+                                        allow="autoplay"
+                                        className="mt-2"
+                                        src={`${soundcloudUrl}`}
+                                        onLoad={() => {
+                                            console.log("Iframe loaded");
+                                            if (window.SC) {
+                                                setTimeout(() => {
+                                                    initializeWidget();
+                                                }, 1000); // Increased delay to ensure iframe content is loaded
+                                            }
+                                        }}
+                                    ></iframe>
+                                </div>
                             )}
                             {soundcloudUrl.trim() !== "" && !isValidUrl && (
-                                <p className="text-red-600 flex items-center">
+                                <p className="text-red-600">
                                     ❌ Invalid SoundCloud URL format
                                 </p>
                             )}
@@ -226,7 +294,7 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium mb-2 text-[var(--text)]">
-                                Song Title *
+                                Title *
                             </label>
                             <input
                                 type="text"
@@ -239,7 +307,7 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
                                     backgroundColor: "var(--primary)",
                                     color: "var(--text)",
                                 }}
-                                placeholder="Enter song title"
+                                placeholder="Song title"
                             />
                         </div>
 
@@ -258,7 +326,7 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
                                     backgroundColor: "var(--primary)",
                                     color: "var(--text)",
                                 }}
-                                placeholder="Enter artist name"
+                                placeholder="Artist name"
                             />
                         </div>
                     </div>
@@ -269,7 +337,9 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
                                 Difficulty
                             </label>
                             <select
-                                value={songDetails.difficulty}
+                                value={
+                                    songDetails.difficulty || Difficulty.MEDIUM
+                                }
                                 onChange={(e) =>
                                     handleDetailChange(
                                         "difficulty",
@@ -285,7 +355,7 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
                                 {Object.values(Difficulty).map((diff) => (
                                     <option key={diff} value={diff}>
                                         {diff.charAt(0).toUpperCase() +
-                                            diff.slice(1)}
+                                            diff.slice(1).toLowerCase()}
                                     </option>
                                 ))}
                             </select>
@@ -315,8 +385,94 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
                                 }}
                                 placeholder="e.g., 2023"
                             />
+                            <Button
+                                label="Search Up"
+                                variant="accent"
+                                onClick={() => {
+                                    const name = songDetails.title
+                                        ? songDetails.title.trim()
+                                        : "";
+                                    const artist = songDetails.artist
+                                        ? songDetails.artist.trim()
+                                        : "";
+                                    window.open(
+                                        `https://www.google.com/search?q=${name}+${artist}+release+year`,
+                                        "_blank"
+                                    );
+                                }}
+                            />
                         </div>
 
+                        <div>
+                            <label className="block text-sm font-medium mb-2 text-[var(--text)]">
+                                Starting Offset (seconds)
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                max="3600"
+                                step="0.1"
+                                value={songDetails.startingOffset || 0}
+                                onChange={(e) =>
+                                    handleDetailChange(
+                                        "startingOffset",
+                                        e.target.value
+                                            ? parseFloat(e.target.value)
+                                            : 0
+                                    )
+                                }
+                                className="w-full p-3 rounded-lg"
+                                style={{
+                                    backgroundColor: "var(--primary)",
+                                    color: "var(--text)",
+                                }}
+                                placeholder="0"
+                            />
+                            <Button
+                                label="Test Offset"
+                                variant="accent"
+                                onClick={() => {
+                                    if (songDetails.startingOffset) {
+                                        console.log(
+                                            "Testing offset:",
+                                            songDetails.startingOffset
+                                        );
+                                        if (widget) {
+                                            widget.seekTo(
+                                                songDetails.startingOffset *
+                                                    1000
+                                            );
+                                            widget.play();
+                                        } else {
+                                            console.error(
+                                                "Widget not initialized"
+                                            );
+                                        }
+                                    }
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-2 text-[var(--text)]">
+                                Mood
+                            </label>
+                            <input
+                                type="text"
+                                value={songDetails.mood || ""}
+                                onChange={(e) =>
+                                    handleDetailChange("mood", e.target.value)
+                                }
+                                className="w-full p-3 rounded-lg"
+                                style={{
+                                    backgroundColor: "var(--primary)",
+                                    color: "var(--text)",
+                                }}
+                                placeholder="e.g., happy, melancholic, energetic"
+                            />
+                        </div>
                         <div>
                             <label className="block text-sm font-medium mb-2 text-[var(--text)]">
                                 Energy Level
@@ -341,28 +497,6 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
                                 <option value="high">High</option>
                             </select>
                         </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-2 text-[var(--text)]">
-                                Mood
-                            </label>
-                            <input
-                                type="text"
-                                value={songDetails.mood || ""}
-                                onChange={(e) =>
-                                    handleDetailChange("mood", e.target.value)
-                                }
-                                className="w-full p-3 rounded-lg"
-                                style={{
-                                    backgroundColor: "var(--primary)",
-                                    color: "var(--text)",
-                                }}
-                                placeholder="e.g., happy, melancholic, energetic"
-                            />
-                        </div>
-
                         <div>
                             <label className="block text-sm font-medium mb-2 text-[var(--text)]">
                                 Popularity Range

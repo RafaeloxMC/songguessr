@@ -87,12 +87,6 @@ export function isValidSoundCloudUrl(url: string): boolean {
     const patterns = [
         // w.soundcloud.com embed URLs
         /^https:\/\/w\.soundcloud\.com\/player\/\?url=/,
-        // API URLs
-        /^https:\/\/api\.soundcloud\.com\/tracks\/\d+/,
-        // Regular SoundCloud track URLs
-        /^https:\/\/soundcloud\.com\/[^\/]+\/[^\/]+/,
-        // Mobile SoundCloud URLs
-        /^https:\/\/m\.soundcloud\.com\/[^\/]+\/[^\/]+/,
     ];
 
     return patterns.some((pattern) => pattern.test(url));
