@@ -344,7 +344,7 @@ const PlaylistManagementPage = () => {
                     <h2 className="text-2xl font-semibold text-[var(--text)]">
                         Your Playlists ({playlists.length})
                     </h2>
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                    <div className="space-y-3 max-h-full overflow-y-auto">
                         {playlists.map((playlist) => (
                             <Card
                                 key={playlist._id.toString()}

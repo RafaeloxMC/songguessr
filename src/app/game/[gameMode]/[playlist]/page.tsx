@@ -5,7 +5,8 @@ import { IPlaylist } from "@/database/schemas/Playlist";
 import { ISong } from "@/database/schemas/Song";
 import { extractSoundCloudURL } from "@/util/SCUtils";
 import { SoundCloudWidget } from "@/util/types/SoundCloudWidget";
-import React from "react";
+import { redirect } from "next/navigation";
+import React, { useCallback } from "react";
 import useSWR from "swr";
 
 interface GamePageProps {
@@ -35,6 +36,7 @@ interface GameState {
     hasGuessed: boolean;
     gameStatus: "setup" | "playing" | "paused" | "finished";
     roundStartTime: number;
+    alreadyPlayedSongIds?: Set<string>;
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -62,7 +64,10 @@ const GamePage = ({ params }: GamePageProps) => {
 
     const [gameState, setGameState] = React.useState<GameState>({
         currentRound: 1,
-        totalRounds: 10,
+        totalRounds:
+            (playlist_data?.songCount || 0) > 10
+                ? 10
+                : playlist_data?.songCount || 0,
         score: 0,
         currentSongId: null,
         currentSongTitle: "",
@@ -72,12 +77,13 @@ const GamePage = ({ params }: GamePageProps) => {
         hasGuessed: false,
         gameStatus: "setup",
         roundStartTime: Date.now(),
+        alreadyPlayedSongIds: new Set(),
     });
 
     const playbackDurations = [1, 3, 5, 10, 15];
     const decodedPlaylist = decodeURIComponent(playlist);
 
-    const { data, error, isLoading } = useSWR<{
+    const { data, isLoading } = useSWR<{
         success: boolean;
         playlist: IPlaylist;
     }>(`/api/playlists/${decodedPlaylist}`, fetcher);
@@ -108,8 +114,16 @@ const GamePage = ({ params }: GamePageProps) => {
     React.useEffect(() => {
         if (data?.playlist) {
             setPlaylistData(data.playlist);
+
+            setGameState((prev) => ({
+                ...prev,
+                totalRounds:
+                    (playlist_data?.songCount || 0) > 10
+                        ? 10
+                        : playlist_data?.songCount || 0,
+            }));
         }
-    }, [data]);
+    }, [data, playlist_data?.songCount]);
 
     const MAX_RETRIES = 3;
     const WIDGET_TIMEOUT = 5000;
@@ -144,7 +158,24 @@ const GamePage = ({ params }: GamePageProps) => {
             );
         }
 
-        const newSongId = getRandomSong(playlist_data);
+        let newSongId = getRandomSong(playlist_data) ?? "";
+
+        if (
+            gameState.alreadyPlayedSongIds?.size ===
+            playlist_data.songIds?.length
+        ) {
+            setGameState((prev) => ({
+                ...prev,
+                gameStatus: "finished",
+                totalRounds: prev.alreadyPlayedSongIds?.size || 0,
+            }));
+            return;
+        } else if (gameState.alreadyPlayedSongIds?.has(newSongId)) {
+            while (gameState.alreadyPlayedSongIds?.has(newSongId)) {
+                newSongId = getRandomSong(playlist_data) ?? "";
+            }
+        }
+
         if (newSongId) {
             setGameState((prev) => ({
                 ...prev,
@@ -238,10 +269,12 @@ const GamePage = ({ params }: GamePageProps) => {
                                     if (sound && sound.title) {
                                         setGameState((prev) => ({
                                             ...prev,
-                                            currentSongTitle: sound.title,
-                                            currentArtist: sound.user
-                                                ? sound.user.username
-                                                : "Unknown Artist",
+                                            currentSongTitle:
+                                                songData.title ?? sound.title,
+                                            currentArtist:
+                                                songData.artist ??
+                                                (sound.user?.username ||
+                                                    "Unknown Artist"),
                                         }));
                                     } else {
                                         setTimeout(() => {
@@ -342,11 +375,31 @@ const GamePage = ({ params }: GamePageProps) => {
         };
     }, []);
 
-    const startNewRound = () => {
+    const startNewRound = useCallback(() => {
         if (!playlist_data) return;
 
         const newSongId = getRandomSong(playlist_data);
         if (!newSongId) return;
+
+        if (
+            playlist_data.songIds?.length ===
+            gameState.alreadyPlayedSongIds?.size
+        ) {
+            setGameState((prev) => ({
+                ...prev,
+                gameStatus: "finished",
+            }));
+            return;
+        }
+
+        if (gameState.alreadyPlayedSongIds?.has(newSongId)) {
+            setIsSelectingNewSong(true);
+            setTimeout(() => {
+                setIsSelectingNewSong(false);
+                startNewRound();
+            }, 1000);
+            return;
+        }
 
         setGameState((prev) => ({
             ...prev,
@@ -359,6 +412,12 @@ const GamePage = ({ params }: GamePageProps) => {
             currentSongTitle: "",
         }));
 
+        const newState = gameState.alreadyPlayedSongIds?.add(newSongId);
+        setGameState((prev) => ({
+            ...prev,
+            alreadyPlayedSongIds: newState ? new Set(newState) : new Set(),
+        }));
+
         setCurrentStage(0);
         setIsPlaying(false);
         setPlaybackStartTime(songData?.startingOffset || 0);
@@ -367,7 +426,12 @@ const GamePage = ({ params }: GamePageProps) => {
         setWidgetError(null);
         setRetryCount(0);
         setIsSelectingNewSong(false);
-    };
+    }, [
+        gameState.alreadyPlayedSongIds,
+        getRandomSong,
+        playlist_data,
+        songData?.startingOffset,
+    ]);
 
     const startProgressivePlayback = () => {
         if (!widget || currentStage >= playbackDurations.length) return;
@@ -430,22 +494,42 @@ const GamePage = ({ params }: GamePageProps) => {
         }));
     };
 
-    const nextRound = () => {
+    const nextRound = useCallback(() => {
         if (gameState.currentRound >= gameState.totalRounds) {
             setGameState((prev) => ({ ...prev, gameStatus: "finished" }));
         } else {
-            setGameState((prev) => ({
-                ...prev,
-                currentRound: prev.currentRound + 1,
-            }));
-            startNewRound();
+            if (
+                (gameState.alreadyPlayedSongIds?.size || 0) >=
+                (playlist_data?.songIds?.length || 0)
+            ) {
+                setGameState((prev) => ({
+                    ...prev,
+                    gameStatus: "finished",
+                    totalRounds: prev.alreadyPlayedSongIds?.size || 0,
+                }));
+            } else {
+                setGameState((prev) => ({
+                    ...prev,
+                    currentRound: prev.currentRound + 1,
+                }));
+                startNewRound();
+            }
         }
-    };
+    }, [
+        gameState.alreadyPlayedSongIds?.size,
+        gameState.currentRound,
+        gameState.totalRounds,
+        playlist_data?.songIds?.length,
+        startNewRound,
+    ]);
 
     const resetGame = () => {
         setGameState({
             currentRound: 1,
-            totalRounds: 10,
+            totalRounds:
+                (playlist_data?.songCount || 0) > 10
+                    ? 10
+                    : playlist_data?.songCount || 0,
             score: 0,
             currentSongId: null,
             currentSongTitle: "",
@@ -474,9 +558,16 @@ const GamePage = ({ params }: GamePageProps) => {
         return `Next hint (${playbackDurations[currentStage]}s)`;
     };
 
-    if (error)
-        return <div className="p-6 text-red-500">Failed to load playlist</div>;
-    if (isLoading) return <div className="p-6">Loading playlist...</div>;
+    React.useEffect(() => {
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if (e.key === "Enter" && gameState.hasGuessed) {
+                nextRound();
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyPress);
+        return () => document.removeEventListener("keydown", handleKeyPress);
+    }, [gameState.hasGuessed, nextRound]);
 
     return (
         <div className="min-h-screen p-6 max-w-4xl mx-auto">
@@ -496,7 +587,10 @@ const GamePage = ({ params }: GamePageProps) => {
                     </span>
                 </div>
                 <p className="text-sm mt-1">
-                    Playlist: {playlist_data?.name || decodedPlaylist}
+                    Playlist:{" "}
+                    {isLoading
+                        ? "Loading..."
+                        : playlist_data?.name || "Unknown"}
                 </p>
             </div>
 
@@ -517,8 +611,22 @@ const GamePage = ({ params }: GamePageProps) => {
                         </p>
                     </Card>
                     <Button
-                        label="Start Game"
-                        onClick={startNewRound}
+                        label={
+                            isLoading
+                                ? "Loading Playlist..."
+                                : playlist_data?.songCount === 0
+                                ? "No Songs Available"
+                                : "Start Game"
+                        }
+                        onClick={
+                            isLoading
+                                ? () => {}
+                                : playlist_data?.songCount === 0
+                                ? () => {
+                                      redirect("/");
+                                  }
+                                : startNewRound
+                        }
                         disabled={!playlist_data}
                     />
                 </div>
@@ -642,7 +750,10 @@ const GamePage = ({ params }: GamePageProps) => {
                                         <div>
                                             <Button
                                                 label={
-                                                    isPlaying
+                                                    !isWidgetReady &&
+                                                    !widgetError
+                                                        ? "Loading..."
+                                                        : isPlaying
                                                         ? `Playing (${playbackDurations[currentStage]}s)...`
                                                         : getStageButtonText()
                                                 }
@@ -653,10 +764,11 @@ const GamePage = ({ params }: GamePageProps) => {
                                                         playbackDurations.length ||
                                                     !isWidgetReady
                                                 }
+                                                className="mb-4"
                                             />
                                             {!isWidgetReady && !widgetError && (
                                                 <div className="mt-2">
-                                                    <p className="text-sm">
+                                                    {/* <p className="text-sm">
                                                         {isSelectingNewSong
                                                             ? "Finding new song..."
                                                             : "Preparing audio player..."}
@@ -666,7 +778,7 @@ const GamePage = ({ params }: GamePageProps) => {
                                                         onClick={
                                                             retryWidgetInit
                                                         }
-                                                    />
+                                                    /> */}
                                                     <div className="w-full bg-gray-200 rounded-full h-1 mt-2">
                                                         <div
                                                             className="bg-[var(--accent)] h-1 rounded-full animate-pulse"
