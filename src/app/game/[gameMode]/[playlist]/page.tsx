@@ -198,14 +198,42 @@ const GamePage = ({ params }: GamePageProps) => {
 
         setIsSelectingNewSong(false);
     }, [
+        // TODO: Fix this dependency array / works like this but when using "Update the dependencies" it breaks.
+        // React Hook React.useCallback has missing dependencies: 'gameState.alreadyPlayedSongIds' and 'getRandomSong'. Either include them or remove the dependency array. eslint(react-hooks/exhaustive-deps)
         playlist_data,
-        isSelectingNewSong,
         gameState.currentSongId,
-        gameState.alreadyPlayedSongIds,
-        getRandomSong,
+        isSelectingNewSong,
+        failedSongIds,
     ]);
 
-    const initializeWidget = useCallback(() => {
+    React.useEffect(() => {
+        if (songData && iframeRef.current) {
+            initializeWidget();
+        } else if (
+            songError &&
+            gameState.currentSongId &&
+            !isSelectingNewSong
+        ) {
+            selectDifferentSong();
+        } else if (
+            !songData &&
+            !isSongLoading &&
+            gameState.currentSongId &&
+            !isSelectingNewSong
+        ) {
+            selectDifferentSong();
+        }
+    }, [
+        // TODO: When using "Update the dependencies" it breaks. Also, when doing this, it wants initializeWidget as a useCallback.
+        songData,
+        songError,
+        isSongLoading,
+        gameState.currentSongId,
+        selectDifferentSong,
+        isSelectingNewSong,
+    ]);
+
+    const initializeWidget = () => {
         if (!iframeRef.current || !songData) return;
 
         setWidgetError(null);
@@ -321,34 +349,7 @@ const GamePage = ({ params }: GamePageProps) => {
                 selectDifferentSong();
             }
         };
-    }, [songData, isWidgetReady, retryCount, selectDifferentSong]);
-
-    React.useEffect(() => {
-        if (songData && iframeRef.current) {
-            initializeWidget();
-        } else if (
-            songError &&
-            gameState.currentSongId &&
-            !isSelectingNewSong
-        ) {
-            selectDifferentSong();
-        } else if (
-            !songData &&
-            !isSongLoading &&
-            gameState.currentSongId &&
-            !isSelectingNewSong
-        ) {
-            selectDifferentSong();
-        }
-    }, [
-        songData,
-        songError,
-        isSongLoading,
-        gameState.currentSongId,
-        selectDifferentSong,
-        isSelectingNewSong,
-        initializeWidget,
-    ]);
+    };
 
     const retryWidgetInit = () => {
         selectDifferentSong();
