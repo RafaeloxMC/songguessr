@@ -129,29 +129,26 @@ const GamePage = ({ params }: GamePageProps) => {
     const MAX_RETRIES = 3;
     const WIDGET_TIMEOUT = 5000;
 
-    const getRandomSong = useCallback(
-        (playlist: IPlaylist): string | null => {
-            if (!playlist.songIds || playlist.songIds.length === 0) return null;
+    const getRandomSong = (playlist: IPlaylist): string | null => {
+        if (!playlist.songIds || playlist.songIds.length === 0) return null;
 
-            const availableSongs = playlist.songIds.filter(
-                (songId) => !failedSongIds.has(songId.toString())
-            );
+        const availableSongs = playlist.songIds.filter(
+            (songId) => !failedSongIds.has(songId.toString())
+        );
 
-            if (availableSongs.length === 0) {
-                setFailedSongIds(new Set());
-                const randomIndex = Math.floor(
-                    Math.random() * playlist.songIds.length
-                );
-                return playlist.songIds[randomIndex].toString();
-            }
-
+        if (availableSongs.length === 0) {
+            setFailedSongIds(new Set());
             const randomIndex = Math.floor(
-                Math.random() * availableSongs.length
+                Math.random() * playlist.songIds.length
             );
-            return availableSongs[randomIndex].toString();
-        },
-        [failedSongIds]
-    );
+            return playlist.songIds[randomIndex].toString();
+        }
+
+        const randomIndex = Math.floor(Math.random() * availableSongs.length);
+        return availableSongs[randomIndex].toString();
+    };
+    // TODO: Fix the warning here, changing it to a useCallback will break finding random songs in a not really predictable way.
+    // The 'getRandomSong' function makes the dependencies of useCallback Hook (at line 434) change on every render. To fix this, wrap the definition of 'getRandomSong' in its own useCallback() Hook. eslint(react-hooks/exhaustive-deps)
 
     const selectDifferentSong = React.useCallback(() => {
         if (!playlist_data || isSelectingNewSong) return;
