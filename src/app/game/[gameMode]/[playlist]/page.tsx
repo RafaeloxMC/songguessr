@@ -1,6 +1,7 @@
 "use client";
 import Button from "@/components/button";
 import Card from "@/components/card";
+import OrDivider from "@/components/OrDivider";
 import { IPlaylist } from "@/database/schemas/Playlist";
 import { ISong } from "@/database/schemas/Song";
 import { extractSoundCloudURL } from "@/util/SCUtils";
@@ -128,24 +129,29 @@ const GamePage = ({ params }: GamePageProps) => {
     const MAX_RETRIES = 3;
     const WIDGET_TIMEOUT = 5000;
 
-    const getRandomSong = (playlist: IPlaylist): string | null => {
-        if (!playlist.songIds || playlist.songIds.length === 0) return null;
+    const getRandomSong = useCallback(
+        (playlist: IPlaylist): string | null => {
+            if (!playlist.songIds || playlist.songIds.length === 0) return null;
 
-        const availableSongs = playlist.songIds.filter(
-            (songId) => !failedSongIds.has(songId.toString())
-        );
-
-        if (availableSongs.length === 0) {
-            setFailedSongIds(new Set());
-            const randomIndex = Math.floor(
-                Math.random() * playlist.songIds.length
+            const availableSongs = playlist.songIds.filter(
+                (songId) => !failedSongIds.has(songId.toString())
             );
-            return playlist.songIds[randomIndex].toString();
-        }
 
-        const randomIndex = Math.floor(Math.random() * availableSongs.length);
-        return availableSongs[randomIndex].toString();
-    };
+            if (availableSongs.length === 0) {
+                setFailedSongIds(new Set());
+                const randomIndex = Math.floor(
+                    Math.random() * playlist.songIds.length
+                );
+                return playlist.songIds[randomIndex].toString();
+            }
+
+            const randomIndex = Math.floor(
+                Math.random() * availableSongs.length
+            );
+            return availableSongs[randomIndex].toString();
+        },
+        [failedSongIds]
+    );
 
     const selectDifferentSong = React.useCallback(() => {
         if (!playlist_data || isSelectingNewSong) return;
@@ -193,38 +199,13 @@ const GamePage = ({ params }: GamePageProps) => {
         setIsSelectingNewSong(false);
     }, [
         playlist_data,
-        gameState.currentSongId,
         isSelectingNewSong,
-        failedSongIds,
+        gameState.currentSongId,
+        gameState.alreadyPlayedSongIds,
+        getRandomSong,
     ]);
 
-    React.useEffect(() => {
-        if (songData && iframeRef.current) {
-            initializeWidget();
-        } else if (
-            songError &&
-            gameState.currentSongId &&
-            !isSelectingNewSong
-        ) {
-            selectDifferentSong();
-        } else if (
-            !songData &&
-            !isSongLoading &&
-            gameState.currentSongId &&
-            !isSelectingNewSong
-        ) {
-            selectDifferentSong();
-        }
-    }, [
-        songData,
-        songError,
-        isSongLoading,
-        gameState.currentSongId,
-        selectDifferentSong,
-        isSelectingNewSong,
-    ]);
-
-    const initializeWidget = () => {
+    const initializeWidget = useCallback(() => {
         if (!iframeRef.current || !songData) return;
 
         setWidgetError(null);
@@ -340,7 +321,34 @@ const GamePage = ({ params }: GamePageProps) => {
                 selectDifferentSong();
             }
         };
-    };
+    }, [songData, isWidgetReady, retryCount, selectDifferentSong]);
+
+    React.useEffect(() => {
+        if (songData && iframeRef.current) {
+            initializeWidget();
+        } else if (
+            songError &&
+            gameState.currentSongId &&
+            !isSelectingNewSong
+        ) {
+            selectDifferentSong();
+        } else if (
+            !songData &&
+            !isSongLoading &&
+            gameState.currentSongId &&
+            !isSelectingNewSong
+        ) {
+            selectDifferentSong();
+        }
+    }, [
+        songData,
+        songError,
+        isSongLoading,
+        gameState.currentSongId,
+        selectDifferentSong,
+        isSelectingNewSong,
+        initializeWidget,
+    ]);
 
     const retryWidgetInit = () => {
         selectDifferentSong();
@@ -432,6 +440,24 @@ const GamePage = ({ params }: GamePageProps) => {
         playlist_data,
         songData?.startingOffset,
     ]);
+
+    const repeatCurrentStage = () => {
+        if (!widget || !isWidgetReady) return;
+        widget.seekTo(playbackStartTime * 1000);
+        widget.play();
+        setIsPlaying(true);
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        const duration =
+            currentStage > 0
+                ? playbackDurations[currentStage - 1]
+                : playbackDurations[0];
+        timeoutRef.current = setTimeout(() => {
+            widget.pause();
+            setIsPlaying(false);
+        }, duration * 1000);
+    };
 
     const startProgressivePlayback = () => {
         if (!widget || currentStage >= playbackDurations.length) return;
@@ -653,11 +679,26 @@ const GamePage = ({ params }: GamePageProps) => {
                             %
                         </p>
                     </Card>
-                    <div className="space-x-4">
-                        <Button label="Play Again" onClick={resetGame} />
+                    <div className="gap-4 flex flex-col mt-8 items-center">
+                        <h1 className="text-lg font-semibold mb-4">
+                            What would you like to do next?
+                        </h1>
+                        <Button
+                            label="Play Again"
+                            onClick={resetGame}
+                            icon="🔁"
+                        />
+                        <OrDivider />
                         <Button
                             label="Choose Different Playlist"
                             onClick={() => window.history.back()}
+                            icon="🎶"
+                        />
+                        <OrDivider />
+                        <Button
+                            label="Return to Home"
+                            onClick={() => redirect("/")}
+                            icon="🏠"
                         />
                     </div>
                 </div>
@@ -748,37 +789,62 @@ const GamePage = ({ params }: GamePageProps) => {
                                         </div>
                                     ) : (
                                         <div>
-                                            <Button
-                                                label={
-                                                    !isWidgetReady &&
-                                                    !widgetError
-                                                        ? "Loading..."
-                                                        : isPlaying
-                                                        ? `Playing (${playbackDurations[currentStage]}s)...`
-                                                        : getStageButtonText()
-                                                }
-                                                onClick={handleProgressivePlay}
-                                                disabled={
-                                                    isPlaying ||
-                                                    currentStage >=
-                                                        playbackDurations.length ||
-                                                    !isWidgetReady
-                                                }
-                                                className="mb-4"
-                                            />
+                                            {isLoading ||
+                                            (!isWidgetReady && !widgetError) ? (
+                                                <p className="mb-4">
+                                                    Loading song...
+                                                </p>
+                                            ) : (
+                                                <div>
+                                                    <Button
+                                                        label={
+                                                            !isWidgetReady &&
+                                                            !widgetError
+                                                                ? "Loading..."
+                                                                : isPlaying
+                                                                ? `Playing (${playbackDurations[currentStage]}s)...`
+                                                                : getStageButtonText()
+                                                        }
+                                                        onClick={
+                                                            handleProgressivePlay
+                                                        }
+                                                        disabled={
+                                                            isPlaying ||
+                                                            currentStage >=
+                                                                playbackDurations.length ||
+                                                            !isWidgetReady
+                                                        }
+                                                        className="mb-4 mr-2"
+                                                    />
+                                                    <Button
+                                                        label={
+                                                            !isWidgetReady &&
+                                                            !widgetError
+                                                                ? "Loading..."
+                                                                : isPlaying
+                                                                ? "Playing..."
+                                                                : `Repeat (${
+                                                                      playbackDurations[
+                                                                          currentStage -
+                                                                              1
+                                                                      ] ||
+                                                                      playbackDurations[0]
+                                                                  }s)`
+                                                        }
+                                                        onClick={
+                                                            repeatCurrentStage
+                                                        }
+                                                        disabled={
+                                                            !isWidgetReady ||
+                                                            (isPlaying &&
+                                                                currentStage >=
+                                                                    playbackDurations.length)
+                                                        }
+                                                    />
+                                                </div>
+                                            )}
                                             {!isWidgetReady && !widgetError && (
                                                 <div className="mt-2">
-                                                    {/* <p className="text-sm">
-                                                        {isSelectingNewSong
-                                                            ? "Finding new song..."
-                                                            : "Preparing audio player..."}
-                                                    </p>
-                                                    <Button
-                                                        label="Manual Retry"
-                                                        onClick={
-                                                            retryWidgetInit
-                                                        }
-                                                    /> */}
                                                     <div className="w-full bg-gray-200 rounded-full h-1 mt-2">
                                                         <div
                                                             className="bg-[var(--accent)] h-1 rounded-full animate-pulse"
@@ -813,7 +879,7 @@ const GamePage = ({ params }: GamePageProps) => {
                                     <input
                                         type="text"
                                         placeholder="Enter your guess..."
-                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full p-3 border rounded-lg"
                                         value={gameState.userGuess}
                                         onChange={(e) =>
                                             setGameState((prev) => ({

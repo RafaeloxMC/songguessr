@@ -1,6 +1,7 @@
 "use client";
 import Button from "@/components/button";
 import FloatingNotesBackground from "@/components/floatingnotesbg";
+import OrDivider from "@/components/OrDivider";
 import PlaylistCard from "@/components/playlistcard";
 import { IPlaylist } from "@/database/schemas/Playlist";
 import { useRouter } from "next/navigation";
@@ -52,13 +53,7 @@ const PlayPage = () => {
                                 The longer you listen, the less points you get!
                             </p>
                         </div>
-                        <div className="flex items-center w-full max-w-xs my-4">
-                            <div className="flex-grow border-t border-[var(--text)]"></div>
-                            <span className="px-4 text-[var(--text)] text-sm">
-                                OR
-                            </span>
-                            <div className="flex-grow border-t border-[var(--text)]"></div>
-                        </div>
+                        <OrDivider />
                         <div className="text-center">
                             <Button
                                 label="By Emojis"
@@ -69,13 +64,7 @@ const PlayPage = () => {
                                 Guess the song only by descriptive emojis!
                             </p>
                         </div>
-                        <div className="flex items-center w-full max-w-xs my-4">
-                            <div className="flex-grow border-t border-[var(--text)]"></div>
-                            <span className="px-4 text-[var(--text)] text-sm">
-                                OR
-                            </span>
-                            <div className="flex-grow border-t border-[var(--text)]"></div>
-                        </div>
+                        <OrDivider />
                         <div className="text-center">
                             <Button
                                 label="By Lyrics"

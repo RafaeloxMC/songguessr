@@ -1,41 +1,52 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fef7f7;
-  --foreground: #2d1b2d;
+    --background: #fef7f7;
+    --foreground: #2d1b2d;
 
-  --primary: #f8d7da;
-  --secondary: #f5c2c7;
+    --primary: #f8d7da;
+    --secondary: #f5c2c7;
 
-  --accent: #e7b3d3;
+    --accent: #e7b3d3;
 
-  --text: #3d2438;
-  --text-secondary: #6b4c6b;
+    --text: #3d2438;
+    --text-secondary: #6b4c6b;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #2d1b2d;
-    --foreground: #fef7f7;
+    :root {
+        --background: #2d1b2d;
+        --foreground: #fef7f7;
 
-    --primary: #8b5a6b;
-    --secondary: #a67c8a;
+        --primary: #8b5a6b;
+        --secondary: #a67c8a;
 
-    --accent: #c48bb5;
+        --accent: #c48bb5;
 
-    --text: #f0e6f0;
-    --text-secondary: #d4c4d4;
-  }
+        --text: #f0e6f0;
+        --text-secondary: #d4c4d4;
+    }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+    background: var(--background);
+    color: var(--foreground);
 }
 
-input, textarea, select{
-  border-radius: 10px;
-  border: 0px;
-}:active, :focus {
-  outline: none;
+input,
+textarea,
+select {
+    border-radius: 10px;
+    border: 0px;
+    outline: 1px solid var(--secondary);
+}
+
+a {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+a.navbar-link {
+    color: var(--text);
+    text-decoration: none;
 }

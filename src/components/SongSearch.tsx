@@ -52,6 +52,8 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
     const [isValidUrl, setIsValidUrl] = useState(false);
     const [widget, setWidget] = useState<SoundCloudWidget | null>(null);
     const [isWidgetReady, setIsWidgetReady] = useState(false);
+    const [jsonInput, setJsonInput] = useState("");
+    const [jsonError, setJsonError] = useState("");
     const iframeRef = React.useRef<HTMLIFrameElement | null>(null);
 
     React.useEffect(() => {
@@ -200,6 +202,115 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
         }
     }, [isWidgetReady, widget]);
 
+    const parseJsonInput = () => {
+        if (!jsonInput.trim()) {
+            setJsonError("Please enter JSON data");
+            return;
+        }
+
+        let cleanedJson = jsonInput.trim();
+
+        try {
+            if (
+                cleanedJson.startsWith("{") &&
+                !cleanedJson.match(/"[\w]+"\s*:/)
+            ) {
+                const stringValues: string[] = [];
+                const stringPlaceholder = "___STRING_PLACEHOLDER___";
+
+                cleanedJson = cleanedJson.replace(
+                    /'([^'\\]*(\\.[^'\\]*)*)'/g,
+                    (match, content) => {
+                        stringValues.push(content);
+                        return `"${stringPlaceholder}${
+                            stringValues.length - 1
+                        }"`;
+                    }
+                );
+
+                cleanedJson = cleanedJson.replace(
+                    /"([^"\\]*(\\.[^"\\]*)*)"/g,
+                    (match, content) => {
+                        if (!content.includes(stringPlaceholder)) {
+                            stringValues.push(content);
+                            return `"${stringPlaceholder}${
+                                stringValues.length - 1
+                            }"`;
+                        }
+                        return match;
+                    }
+                );
+
+                cleanedJson = cleanedJson
+                    .replace(/(\w+)\s*:/g, '"$1":')
+                    .replace(/Difficulty\.(\w+)/g, '"$1"')
+                    .replace(/:\s*"(true|false)"/g, ": $1")
+                    .replace(/:\s*"(\d+)"/g, ": $1");
+
+                stringValues.forEach((value, index) => {
+                    const placeholder = `"${stringPlaceholder}${index}"`;
+                    const escapedValue = value.replace(/"/g, '\\"');
+                    cleanedJson = cleanedJson.replace(
+                        placeholder,
+                        `"${escapedValue}"`
+                    );
+                });
+            }
+
+            const parsedData = JSON.parse(cleanedJson);
+
+            if (
+                parsedData.difficulty &&
+                typeof parsedData.difficulty === "string"
+            ) {
+                const difficultyValue = parsedData.difficulty.toUpperCase();
+                if (
+                    Object.values(Difficulty).includes(
+                        difficultyValue as Difficulty
+                    )
+                ) {
+                    parsedData.difficulty = difficultyValue as Difficulty;
+                }
+            }
+
+            const newSongDetails: Partial<ISong> = {
+                title: parsedData.title || songDetails.title,
+                artist: parsedData.artist || songDetails.artist,
+                difficulty: parsedData.difficulty || songDetails.difficulty,
+                releaseYear: parsedData.releaseYear || songDetails.releaseYear,
+                genres: Array.isArray(parsedData.genres)
+                    ? parsedData.genres
+                    : songDetails.genres || [],
+                mood: parsedData.mood || songDetails.mood,
+                energy: parsedData.energy || songDetails.energy,
+                popularityRange:
+                    parsedData.popularityRange || songDetails.popularityRange,
+                startingOffset:
+                    parsedData.startingOffset ||
+                    songDetails.startingOffset ||
+                    0,
+            };
+
+            setSongDetails(newSongDetails);
+            setJsonInput("");
+            setJsonError("");
+            console.log("Successfully imported JSON data:", newSongDetails);
+        } catch (error) {
+            setJsonError(
+                `Invalid JSON format: ${
+                    error instanceof Error ? error.message : "Unknown error"
+                }`
+            );
+            console.error("JSON parsing error:", error);
+            console.log("Attempted to parse:", cleanedJson);
+        }
+    };
+
+    const clearJsonInput = () => {
+        setJsonInput("");
+        setJsonError("");
+    };
+
     return (
         <div className="p-6 space-y-6 max-h-screen overflow-y-auto">
             <div className="flex justify-between items-center">
@@ -213,6 +324,64 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
                     className="!p-2 !text-lg"
                 />
             </div>
+
+            {/* JSON Import Section */}
+            <Card variant="secondary">
+                <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-[var(--text)]">
+                        📋 Import from JSON
+                    </h3>
+                    <div>
+                        <label className="block text-sm font-medium mb-2 text-[var(--text)]">
+                            Paste JSON Data
+                        </label>
+                        <textarea
+                            value={jsonInput}
+                            onChange={(e) => {
+                                setJsonInput(e.target.value);
+                                setJsonError("");
+                            }}
+                            className="w-full p-3 rounded-lg h-32 font-mono text-sm"
+                            style={{
+                                backgroundColor: "var(--primary)",
+                                color: "var(--text)",
+                                border: jsonError
+                                    ? "2px solid red"
+                                    : "1px solid var(--accent)",
+                            }}
+                            placeholder={`{
+  "title": "Time",
+  "artist": "Hans Zimmer",
+  "difficulty": "MEDIUM",
+  "releaseYear": 2010,
+  "genres": ["soundtrack", "orchestral", "cinematic"],
+  "mood": "epic",
+  "energy": "medium",
+  "popularityRange": "mainstream"
+}`}
+                        />
+                        {jsonError && (
+                            <p className="text-red-500 text-sm mt-2">
+                                ❌ {jsonError}
+                            </p>
+                        )}
+                    </div>
+                    <div className="flex gap-2">
+                        <Button
+                            label="Import JSON"
+                            onClick={parseJsonInput}
+                            variant="accent"
+                            disabled={!jsonInput.trim()}
+                        />
+                        <Button
+                            label="Clear"
+                            onClick={clearJsonInput}
+                            variant="secondary"
+                            disabled={!jsonInput.trim()}
+                        />
+                    </div>
+                </div>
+            </Card>
 
             <Card variant="primary">
                 <div className="space-y-4 max-h-96 overflow-y-auto">
@@ -398,6 +567,7 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
                                         "_blank"
                                     );
                                 }}
+                                className="mt-4"
                             />
                         </div>
 
@@ -444,6 +614,7 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
                                         }
                                     }
                                 }}
+                                className="mt-4"
                             />
                         </div>
                     </div>

@@ -152,6 +152,16 @@ const PlaylistManagementPage = () => {
 
             if (response.ok) {
                 await fetchPlaylists();
+                const updatedPlaylists = await fetch("/api/playlists").then(
+                    (res) => res.json()
+                );
+                const updatedPlaylist = updatedPlaylists.find(
+                    (p: IPlaylist) =>
+                        p._id.toString() === selectedPlaylist._id.toString()
+                );
+                if (updatedPlaylist) {
+                    setSelectedPlaylist(updatedPlaylist);
+                }
                 setShowSongSearch(false);
             }
         } catch (error) {
