@@ -263,13 +263,31 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
                 parsedData.difficulty &&
                 typeof parsedData.difficulty === "string"
             ) {
-                const difficultyValue = parsedData.difficulty.toUpperCase();
-                if (
-                    Object.values(Difficulty).includes(
-                        difficultyValue as Difficulty
-                    )
-                ) {
-                    parsedData.difficulty = difficultyValue as Difficulty;
+                const difficultyValue = parsedData.difficulty.toLowerCase();
+                const difficultyMap: { [key: string]: Difficulty } = {
+                    easy: Difficulty.EASY,
+                    medium: Difficulty.MEDIUM,
+                    hard: Difficulty.HARD,
+                    EASY: Difficulty.EASY,
+                    MEDIUM: Difficulty.MEDIUM,
+                    HARD: Difficulty.HARD,
+                };
+
+                if (difficultyMap[parsedData.difficulty]) {
+                    parsedData.difficulty =
+                        difficultyMap[parsedData.difficulty];
+                } else {
+                    const enumValue = Object.values(Difficulty).find(
+                        (value) => value.toLowerCase() === difficultyValue
+                    );
+                    if (enumValue) {
+                        parsedData.difficulty = enumValue;
+                    } else {
+                        parsedData.difficulty = Difficulty.MEDIUM;
+                        console.warn(
+                            `Unknown difficulty "${parsedData.difficulty}", defaulting to MEDIUM`
+                        );
+                    }
                 }
             }
 
