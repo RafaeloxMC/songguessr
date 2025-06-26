@@ -134,43 +134,48 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSongAdd, onClose }) => {
     };
 
     const handleAddSong = () => {
-        if (!isValidUrl || !soundcloudUrl.trim()) {
-            alert("Please enter a valid SoundCloud URL");
-            return;
+        try {
+            if (!isValidUrl || !soundcloudUrl.trim()) {
+                alert("Please enter a valid SoundCloud URL");
+                return;
+            }
+
+            if (!songDetails.title?.trim()) {
+                alert("Please enter a song title");
+                return;
+            }
+
+            const processedUrl = convertToApiUrl(soundcloudUrl);
+
+            const song: Partial<ISong> = {
+                soundcloudUrl: processedUrl,
+                title: songDetails.title?.trim(),
+                artist: songDetails.artist?.trim(),
+                difficulty: songDetails.difficulty || Difficulty.MEDIUM,
+                startingOffset: songDetails.startingOffset || 0,
+                releaseYear: songDetails.releaseYear,
+                genres: songDetails.genres || [],
+                mood: songDetails.mood?.trim() || undefined,
+                energy: songDetails.energy,
+                popularityRange: songDetails.popularityRange,
+            };
+
+            onSongAdd(song);
+
+            setSoundcloudUrl("");
+            setSongDetails({
+                difficulty: Difficulty.MEDIUM,
+                title: "",
+                artist: "",
+                genres: [],
+                startingOffset: 0,
+            });
+            setCurrentGenre("");
+            setIsValidUrl(false);
+        } catch (error) {
+            console.error("Error adding song:", error);
+            alert("An error occurred while adding the song.");
         }
-
-        if (!songDetails.title?.trim()) {
-            alert("Please enter a song title");
-            return;
-        }
-
-        const processedUrl = convertToApiUrl(soundcloudUrl);
-
-        const song: Partial<ISong> = {
-            soundcloudUrl: processedUrl,
-            title: songDetails.title?.trim(),
-            artist: songDetails.artist?.trim(),
-            difficulty: songDetails.difficulty || Difficulty.MEDIUM,
-            startingOffset: songDetails.startingOffset || 0,
-            releaseYear: songDetails.releaseYear,
-            genres: songDetails.genres || [],
-            mood: songDetails.mood?.trim() || undefined,
-            energy: songDetails.energy,
-            popularityRange: songDetails.popularityRange,
-        };
-
-        onSongAdd(song);
-
-        setSoundcloudUrl("");
-        setSongDetails({
-            difficulty: Difficulty.MEDIUM,
-            title: "",
-            artist: "",
-            genres: [],
-            startingOffset: 0,
-        });
-        setCurrentGenre("");
-        setIsValidUrl(false);
     };
 
     const initializeWidget = React.useCallback(() => {
