@@ -4,6 +4,7 @@ export interface IUser extends Document {
     _id: Types.ObjectId;
     username: string;
     email: string;
+    password: string;
     totalScore: number;
     gamesPlayed: number;
     gamesWon: number;
@@ -32,6 +33,15 @@ const UserSchema = new Schema<IUser>(
                 /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
                 "Please enter a valid email",
             ],
+        },
+        password: { 
+            type: String, 
+            required: true, 
+            minlength: 8,
+            match: [
+                /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/,
+                "Password must be at least 8 characters long and include at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol."
+            ]
         },
         totalScore: { type: Number, default: 0, min: 0 },
         gamesPlayed: { type: Number, default: 0, min: 0 },

@@ -136,6 +136,8 @@ const PlayPage = () => {
                             </p>
                         </div>
                     ) : (
+                        Array.isArray(playlists) &&
+                        playlists.length > 0 &&
                         playlists.map((playlistItem) => (
                             <PlaylistCard
                                 key={playlistItem.id}
