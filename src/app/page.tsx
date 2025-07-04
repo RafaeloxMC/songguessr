@@ -191,7 +191,11 @@ const HomePage = () => {
                                 <Button
                                     label="Learn More"
                                     icon={<span>📖</span>}
-                                    onClick={() => redirect("/about")}
+                                    onClick={() =>
+                                        redirect(
+                                            "https://github.com/RafaeloxMC/songguessr"
+                                        )
+                                    }
                                     variant="secondary"
                                     className="text-lg px-4 py-2"
                                 />
