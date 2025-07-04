@@ -50,9 +50,6 @@ textarea::placeholder,
 select::placeholder {
     color: var(--text-secondary);
 }
-:focus {
-    outline: 1px solid var(--accent);
-}
 
 a {
     color: var(--text-secondary);

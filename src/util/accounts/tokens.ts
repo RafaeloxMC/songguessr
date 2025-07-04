@@ -1,9 +1,8 @@
 import { IUser } from "@/database/schemas/User";
-import jwt from "jsonwebtoken";
+import * as jose from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Add debugging to see what's available
 if (!JWT_SECRET) {
     console.error("JWT_SECRET is undefined");
     console.error(
@@ -13,26 +12,26 @@ if (!JWT_SECRET) {
     console.error("NODE_ENV:", process.env.NODE_ENV);
 }
 
-export function generateToken(user: IUser | { _id: string; password: string }) {
+export async function generateToken(
+    user: IUser | { _id: string; password: string }
+) {
     if (!JWT_SECRET) {
         throw new Error(
             `JWT_SECRET is not defined. Check your .env.local file in the project root and ensure it contains: JWT_SECRET=your_secret_here`
         );
     }
-    const token = jwt.sign(
-        {
-            _id: user._id,
-            password: user.password,
-        },
-        JWT_SECRET,
-        {
-            expiresIn: "1d",
-        }
-    );
+    const token = await new jose.SignJWT({
+        _id: user._id,
+        password: user.password,
+    })
+        .setProtectedHeader({ alg: "HS256" })
+        .sign(new TextEncoder().encode(JWT_SECRET));
     return token;
 }
 
-export function validateToken(token: string | null): IUser | null {
+export async function validateToken(
+    token: string | null
+): Promise<IUser | null> {
     if (!token) {
         return null;
     }
@@ -45,9 +44,10 @@ export function validateToken(token: string | null): IUser | null {
         if (token.startsWith("Bearer ")) {
             token = token.slice(7, token.length);
         }
-        const payload = jwt.verify(token, JWT_SECRET, {
-            maxAge: "1d",
-        });
+        const { payload } = await jose.jwtVerify(
+            token,
+            new TextEncoder().encode(JWT_SECRET)
+        );
         if (
             typeof payload === "object" &&
             payload !== null &&

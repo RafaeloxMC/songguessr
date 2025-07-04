@@ -49,6 +49,7 @@ export async function middleware(request: NextRequest) {
     const methods = matchesPath(pathname);
     if (methods.length > 0 && methods.includes(request.method)) {
         const authHeader = (await headers()).get("Authorization");
+
         if (!authHeader) {
             return NextResponse.json(
                 { error: "Unauthorized" },
@@ -56,7 +57,8 @@ export async function middleware(request: NextRequest) {
             );
         }
 
-        const user = validateToken(authHeader);
+        const user = await validateToken(authHeader);
+
         if (!user) {
             return NextResponse.json(
                 { error: "Unauthorized" },
@@ -66,3 +68,7 @@ export async function middleware(request: NextRequest) {
     }
     return NextResponse.next();
 }
+
+export const config = {
+    matcher: ["/api/:path*"],
+};

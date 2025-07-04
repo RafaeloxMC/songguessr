@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 export async function GET() {
     const token = (await headers()).get("Authorization");
 
-    const user = validateToken(token);
+    const user = await validateToken(token);
     if (!user) {
         return NextResponse.json(
             { success: false, error: "Unauthorized" },

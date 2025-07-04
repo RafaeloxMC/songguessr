@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
                 if (isMatchingPw) {
                     return NextResponse.json({
                         success: true,
-                        token: generateToken(existingUser),
+                        token: await generateToken(existingUser),
                     });
                 } else {
                     return NextResponse.json(

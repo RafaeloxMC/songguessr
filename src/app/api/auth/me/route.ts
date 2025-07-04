@@ -1,12 +1,13 @@
 import User from "@/database/schemas/User";
 import { validateToken } from "@/util/accounts/tokens";
+import { Types } from "mongoose";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function GET() {
     const token = (await headers()).get("Authorization");
 
-    let user = validateToken(token);
+    let user = await validateToken(token);
     if (!user) {
         return NextResponse.json(
             { success: false, error: "Unauthorized" },
@@ -14,7 +15,27 @@ export async function GET() {
         );
     }
 
-    user = (await User.findOne({ _id: user._id })) ?? user;
+    try {
+        const userIdWithBuffer = user._id as {
+            buffer?: Record<string, number>;
+        };
+        if (
+            userIdWithBuffer.buffer &&
+            typeof userIdWithBuffer.buffer === "object"
+        ) {
+            const bufferData = userIdWithBuffer.buffer;
+            const bufferArray = Object.values(bufferData) as number[];
+            const buffer = Buffer.from(bufferArray);
+            const userId = new Types.ObjectId(buffer);
+            user = (await User.findOne({ _id: userId })) ?? user;
+        }
+    } catch (error) {
+        console.error("Error converting buffer to ObjectId:", error);
+        return NextResponse.json(
+            { success: false, error: "Invalid user ID" },
+            { status: 400 }
+        );
+    }
 
     const resEl = {
         id: user._id,
