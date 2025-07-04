@@ -59,17 +59,19 @@ const PlayPage = () => {
         icon,
         title,
         description,
+        disabled = false,
         onClick,
     }: {
         mode: string;
         icon: string;
         title: string;
         description: string;
+        disabled?: boolean;
         onClick: () => void;
     }) => (
         <motion.div
-            whileHover={{ scale: 1.05, y: -4 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={disabled ? {} : { scale: 1.05, y: -4 }}
+            whileTap={disabled ? {} : { scale: 0.95 }}
             transition={{ duration: 0.2 }}
         >
             <Card
@@ -80,19 +82,40 @@ const PlayPage = () => {
                         ? "secondary"
                         : "accent"
                 }
-                className="cursor-pointer hover:shadow-none hover:translate-y-1 h-full"
-                onClick={onClick}
+                className={`cursor-pointer hover:shadow-none hover:translate-y-1 h-full ${
+                    disabled
+                        ? "opacity-50 cursor-not-allowed hover:shadow-[0_4px_0_rgba(0,0,0,0.3)] hover:translate-y-0"
+                        : ""
+                }`}
+                onClick={disabled ? undefined : onClick}
             >
                 <div className="text-center space-y-4">
                     <motion.div
-                        className="text-6xl"
-                        whileHover={{ scale: 1.2, rotate: 5 }}
+                        className={`text-6xl ${disabled ? "grayscale" : ""}`}
+                        whileHover={disabled ? {} : { scale: 1.2, rotate: 5 }}
                         transition={{ duration: 0.3 }}
                     >
                         {icon}
                     </motion.div>
-                    <h3 className="text-xl font-bold">{title}</h3>
-                    <p className="text-sm leading-relaxed">{description}</p>
+                    <h3
+                        className={`text-xl font-bold ${
+                            disabled ? "text-gray-500" : ""
+                        }`}
+                    >
+                        {title}
+                    </h3>
+                    <p
+                        className={`text-sm leading-relaxed ${
+                            disabled ? "text-gray-400" : ""
+                        }`}
+                    >
+                        {description}
+                    </p>
+                    {disabled && (
+                        <div className="mt-2 px-3 py-1 bg-gray-600 text-gray-300 rounded-full text-xs">
+                            Coming Soon
+                        </div>
+                    )}
                 </div>
             </Card>
         </motion.div>
@@ -143,6 +166,7 @@ const PlayPage = () => {
                                     title="By Emojis"
                                     description="Decode the song title using only descriptive emojis. Think you can crack the code?"
                                     onClick={() => setGameMode("emoji")}
+                                    disabled
                                 />
                                 <GameModeCard
                                     mode="lyrics"
@@ -150,6 +174,7 @@ const PlayPage = () => {
                                     title="By Lyrics"
                                     description="Identify the song from its lyrics. Perfect for poetry and music lovers!"
                                     onClick={() => setGameMode("lyrics")}
+                                    disabled
                                 />
                             </div>
                         </motion.div>

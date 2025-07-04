@@ -244,7 +244,6 @@ const SongDevPage = ({ params }: SongDevPageProps) => {
         }));
     };
 
-    // Cleanup timeout on unmount
     useEffect(() => {
         return () => {
             if (timeoutRef.current) {

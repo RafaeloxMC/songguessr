@@ -101,6 +101,15 @@ const GamePage = ({ params }: GamePageProps) => {
     );
 
     React.useEffect(() => {
+        if (!gameMode || !playlist) {
+            redirect("/");
+        }
+        if (gameMode !== "classic") {
+            redirect("/");
+        }
+    });
+
+    React.useEffect(() => {
         if (!window.SC) {
             const script = document.createElement("script");
             script.src = "https://w.soundcloud.com/player/api.js";
