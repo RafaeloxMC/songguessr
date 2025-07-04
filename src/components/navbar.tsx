@@ -16,10 +16,10 @@ const Navbar = () => {
                         Play
                     </Link>
                     <Link
-                        href="/auth/login"
+                        href="/dashboard"
                         className="hover:underline navbar-link"
                     >
-                        Login
+                        Dashboard
                     </Link>
                 </nav>
             </div>

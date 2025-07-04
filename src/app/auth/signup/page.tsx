@@ -24,7 +24,7 @@ function SignupPage() {
         const data = await res.json();
         if (res.status === 200) {
             localStorage.setItem("token", data.token);
-            router.push("/");
+            router.push("/dashboard");
         } else {
             setError(data.message || "Login failed. Please try again.");
         }
