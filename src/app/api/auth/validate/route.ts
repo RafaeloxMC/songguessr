@@ -1,6 +1,6 @@
 import { validateToken } from "@/util/accounts/tokens";
 import { headers } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 export async function GET() {
     const token = (await headers()).get("Authorization");

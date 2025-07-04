@@ -1,7 +1,7 @@
 "use client";
 import Button from "@/components/button";
 import Card from "@/components/card";
-import OrDivider from "@/components/OrDivider";
+import FloatingNotesBackground from "@/components/floatingnotesbg";
 import { IPlaylist } from "@/database/schemas/Playlist";
 import { ISong } from "@/database/schemas/Song";
 import { extractSoundCloudURL } from "@/util/SCUtils";
@@ -594,424 +594,530 @@ const GamePage = ({ params }: GamePageProps) => {
     }, [gameState.hasGuessed, nextRound]);
 
     return (
-        <div className="min-h-screen p-6 max-w-4xl mx-auto">
-            {/* Game Header */}
-            <div className="mb-6 text-center">
-                <h1 className="text-3xl font-bold mb-2">🎵 Song Guesser</h1>
-                <div className="flex justify-center items-center gap-6 text-lg">
-                    <span>
-                        Round {gameState.currentRound}/{gameState.totalRounds}
-                    </span>
-                    <span className="font-semibold">
-                        Score: {gameState.score}
-                    </span>
-                    <span className="text-sm">
-                        {gameMode.charAt(0).toUpperCase() + gameMode.slice(1)}{" "}
-                        Mode
-                    </span>
-                </div>
-                <p className="text-sm mt-1">
-                    Playlist:{" "}
-                    {isLoading
-                        ? "Loading..."
-                        : playlist_data?.name || "Unknown"}
-                </p>
-            </div>
+        <div className="min-h-screen bg-[var(--background)] relative mt-16">
+            {/* <FloatingNotesBackground /> */}
 
-            {/* Game Setup */}
-            {gameState.gameStatus === "setup" && (
-                <div className="text-center mb-6">
-                    <Card variant="primary" className="mb-6">
-                        <h2 className="text-xl font-semibold mb-2">
-                            Ready to Play?
-                        </h2>
-                        <p className="mb-4">
-                            You&apos;ll hear song clips of increasing length.
-                            Guess the song title for more points!
-                        </p>
-                        <p className="text-smmb-4">
-                            Hint durations:{" "}
-                            {playbackDurations.map((d) => `${d}s`).join(" → ")}
-                        </p>
-                    </Card>
-                    <Button
-                        label={
-                            isLoading
-                                ? "Loading Playlist..."
-                                : playlist_data?.songCount === 0
-                                ? "No Songs Available"
-                                : "Start Game"
-                        }
-                        onClick={
-                            isLoading
-                                ? () => {}
-                                : playlist_data?.songCount === 0
-                                ? () => {
-                                      redirect("/");
-                                  }
-                                : startNewRound
-                        }
-                        disabled={!playlist_data}
-                    />
+            <div className="relative z-10 p-6 max-w-4xl mx-auto pt-8">
+                {/* Game Header - Consistent with original */}
+                <div className="mb-8 text-center">
+                    <h1 className="text-4xl md:text-5xl font-bold mb-4 text-[var(--text)]">
+                        🎵 SongGuesser
+                    </h1>
+                    <div className="flex justify-center items-center gap-6 text-lg flex-wrap">
+                        <span className="bg-[var(--card)] px-4 py-2 rounded-lg border border-[var(--border)] text-md">
+                            Round {gameState.currentRound}/
+                            {gameState.totalRounds}
+                        </span>
+                        <span className="bg-[var(--card)] px-4 py-2 rounded-lg border border-[var(--border)] font-semibold text-md">
+                            Score: {gameState.score}
+                        </span>
+                        <span className="bg-[var(--card)] px-4 py-2 rounded-lg border border-[var(--border)] text-md">
+                            {gameMode.charAt(0).toUpperCase() +
+                                gameMode.slice(1)}{" "}
+                            Mode
+                        </span>
+                    </div>
+                    <p className="text-sm mt-3 text-[var(--text-secondary)]">
+                        Playlist:{" "}
+                        {isLoading
+                            ? "Loading..."
+                            : playlist_data?.name || "Unknown"}
+                    </p>
                 </div>
-            )}
 
-            {/* Game Finished */}
-            {gameState.gameStatus === "finished" && (
-                <div className="text-center mb-6">
-                    <Card variant="primary" className="mb-6">
-                        <h2 className="text-2xl font-bold mb-2">
-                            🎉 Game Complete!
-                        </h2>
-                        <p className="text-xl mb-2">
-                            Final Score: {gameState.score}/
-                            {gameState.totalRounds * 5}
-                        </p>
-                        <p>
-                            You scored{" "}
-                            {Math.round(
-                                (gameState.score /
-                                    (gameState.totalRounds * 5)) *
-                                    100
-                            )}
-                            %
-                        </p>
-                    </Card>
-                    <div className="gap-4 flex flex-col mt-8 items-center">
-                        <h1 className="text-lg font-semibold mb-4">
-                            What would you like to do next?
-                        </h1>
+                {/* Game Setup */}
+                {gameState.gameStatus === "setup" && (
+                    <div className="text-center mb-6">
+                        <Card variant="primary" className="mb-6 p-8">
+                            <div className="text-6xl mb-6 animate-bounce">
+                                🎮
+                            </div>
+                            <h2 className="text-2xl font-semibold mb-4">
+                                Ready to Play?
+                            </h2>
+                            <p className="mb-6 text-lg">
+                                You&apos;ll hear song clips of increasing
+                                length. Guess the song title for more points!
+                            </p>
+
+                            {/* Hint duration visual - styled consistently */}
+                            <div className="mb-6">
+                                <p className="text-sm mb-4 text-[var(--text-secondary)]">
+                                    Hint durations:{" "}
+                                    {playbackDurations
+                                        .map((d) => `${d}s`)
+                                        .join(" → ")}
+                                </p>
+                                <div className="flex justify-center gap-3">
+                                    {playbackDurations.map(
+                                        (duration, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex flex-col items-center"
+                                            >
+                                                <div className="w-10 h-10 bg-[var(--accent)] rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                                                    {duration}s
+                                                </div>
+                                                {index <
+                                                    playbackDurations.length -
+                                                        1 && (
+                                                    <div className="w-6 h-0.5 bg-[var(--border)] mt-2"></div>
+                                                )}
+                                            </div>
+                                        )
+                                    )}
+                                </div>
+                            </div>
+                        </Card>
+
                         <Button
-                            label="Play Again"
-                            onClick={resetGame}
-                            icon="🔁"
-                        />
-                        <OrDivider />
-                        <Button
-                            label="Choose Different Playlist"
-                            onClick={() => window.history.back()}
-                            icon="🎶"
-                        />
-                        <OrDivider />
-                        <Button
-                            label="Return to Home"
-                            onClick={() => redirect("/")}
-                            icon="🏠"
+                            label={
+                                isLoading
+                                    ? "Loading Playlist..."
+                                    : playlist_data?.songCount === 0
+                                    ? "No Songs Available"
+                                    : "Start Game"
+                            }
+                            onClick={startNewRound}
+                            disabled={!playlist_data}
+                            variant="accent"
+                            className="text-lg px-8 py-4"
                         />
                     </div>
-                </div>
-            )}
+                )}
 
-            {/* Active Game */}
-            {gameState.gameStatus === "playing" && gameState.currentSongId && (
-                <div className="space-y-6">
-                    {/* Progress Indicator */}
-                    <Card className="p-4 rounded-lg">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-medium">
-                                Hints Used:
-                            </span>
-                            <span className="text-sm">
-                                {currentStage}/{playbackDurations.length}
-                            </span>
-                        </div>
-                        <div className="flex space-x-1">
-                            {playbackDurations.map((duration, index) => (
-                                <div
-                                    key={index}
-                                    className={`flex-1 h-2 rounded ${
-                                        index < currentStage
-                                            ? "bg-[var(--accent)]"
-                                            : index === currentStage &&
-                                              isPlaying
-                                            ? "bg-[var(--secondary)] animate-pulse"
-                                            : "bg-gray-300"
-                                    }`}
-                                />
-                            ))}
-                        </div>
-                        <div className="flex justify-between text-xs mt-1">
-                            {playbackDurations.map((duration, index) => (
-                                <span key={index}>{duration}s</span>
-                            ))}
-                        </div>
-                    </Card>
+                {/* Game Finished */}
+                {gameState.gameStatus === "finished" && (
+                    <div className="text-center mb-6">
+                        <Card variant="primary" className="mb-6 p-8">
+                            <div className="text-6xl mb-6 animate-bounce">
+                                🎉
+                            </div>
+                            <h2 className="text-2xl font-bold mb-4">
+                                Game Complete!
+                            </h2>
 
-                    {/* Audio Player */}
-                    {songData && (
-                        <Card variant="secondary">
-                            <div className={gameState.hasGuessed ? "" : "mb-4"}>
-                                <iframe
-                                    ref={iframeRef}
-                                    src={extractSoundCloudURL(
-                                        songData.soundcloudUrl
+                            <div className="mb-6">
+                                <p className="text-2xl mb-4">
+                                    Final Score: {gameState.score}/
+                                    {gameState.totalRounds * 5}
+                                </p>
+                                <div className="w-full bg-[var(--border)] rounded-full h-3 mb-3">
+                                    <div
+                                        className="bg-[var(--accent)] h-3 rounded-full transition-all duration-1000"
+                                        style={{
+                                            width: `${
+                                                (gameState.score /
+                                                    (gameState.totalRounds *
+                                                        5)) *
+                                                100
+                                            }%`,
+                                        }}
+                                    ></div>
+                                </div>
+                                <p className="text-lg">
+                                    You scored{" "}
+                                    {Math.round(
+                                        (gameState.score /
+                                            (gameState.totalRounds * 5)) *
+                                            100
                                     )}
-                                    width="100%"
-                                    height={`${
-                                        gameState.hasGuessed ? 166 : 1
-                                    }px`}
-                                    allow="autoplay"
-                                    className={`rounded ${
-                                        gameState.hasGuessed
-                                            ? ""
-                                            : "opacity-0 pointer-events-none"
-                                    }`}
-                                />
+                                    %
+                                </p>
                             </div>
 
-                            {/* Playback Controls */}
-                            {gameState.hasGuessed ? (
-                                <></>
-                            ) : (
-                                <div className="text-center">
-                                    {widgetError ? (
-                                        <div className="space-y-3">
-                                            <p className="text-red-500 text-sm">
-                                                {widgetError}
-                                            </p>
-                                            {retryCount < MAX_RETRIES ? (
-                                                <Button
-                                                    label={`Retry (${
-                                                        retryCount + 1
-                                                    }/${MAX_RETRIES + 1})`}
-                                                    onClick={retryWidgetInit}
-                                                />
-                                            ) : (
-                                                <div className="space-y-2">
-                                                    <p className="text-red-500 text-sm">
-                                                        Selecting different
-                                                        song...
-                                                    </p>
-                                                </div>
+                            <Card variant="secondary" className="mb-6">
+                                <p className="text-lg">
+                                    {gameState.score /
+                                        (gameState.totalRounds * 5) >=
+                                    0.8
+                                        ? "🌟 Outstanding performance!"
+                                        : gameState.score /
+                                              (gameState.totalRounds * 5) >=
+                                          0.6
+                                        ? "🎯 Great job!"
+                                        : gameState.score /
+                                              (gameState.totalRounds * 5) >=
+                                          0.4
+                                        ? "👍 Good effort!"
+                                        : "📚 Keep practicing!"}
+                                </p>
+                            </Card>
+                        </Card>
+
+                        <div className="flex flex-col sm:flex-row gap-4 mt-8 items-center justify-center">
+                            <Button
+                                label="Play Again"
+                                onClick={resetGame}
+                                variant="accent"
+                            />
+                            <Button
+                                label="Choose Different Playlist"
+                                onClick={() => window.history.back()}
+                                variant="secondary"
+                            />
+                            <Button
+                                label="Return to Home"
+                                onClick={() => redirect("/")}
+                                variant="primary"
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* Active Game */}
+                {gameState.gameStatus === "playing" &&
+                    gameState.currentSongId && (
+                        <div className="space-y-6">
+                            {/* Progress Indicator - styled like original */}
+                            <Card className="p-4 rounded-lg">
+                                <div className="flex justify-between items-center mb-3">
+                                    <span className="text-sm font-medium">
+                                        Hints Used:
+                                    </span>
+                                    <span className="text-sm bg-[var(--accent)] text-white px-2 py-1 rounded">
+                                        {currentStage}/
+                                        {playbackDurations.length}
+                                    </span>
+                                </div>
+                                <div className="flex space-x-1">
+                                    {playbackDurations.map(
+                                        (duration, index) => (
+                                            <div
+                                                key={index}
+                                                className={`flex-1 h-3 rounded ${
+                                                    index < currentStage
+                                                        ? "bg-[var(--accent)]"
+                                                        : index ===
+                                                              currentStage &&
+                                                          isPlaying
+                                                        ? "bg-[var(--secondary)] animate-pulse"
+                                                        : "bg-gray-300"
+                                                }`}
+                                            />
+                                        )
+                                    )}
+                                </div>
+                                <div className="flex justify-between text-xs mt-2 text-[var(--text-secondary)]">
+                                    {playbackDurations.map(
+                                        (duration, index) => (
+                                            <span key={index}>{duration}s</span>
+                                        )
+                                    )}
+                                </div>
+                            </Card>
+
+                            {/* Audio Player */}
+                            {songData && (
+                                <Card variant="secondary">
+                                    <div className="mb-4">
+                                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                                            <span className="text-2xl">🎵</span>
+                                            Audio Player
+                                        </h3>
+                                        <iframe
+                                            ref={iframeRef}
+                                            src={extractSoundCloudURL(
+                                                songData.soundcloudUrl
                                             )}
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            {isLoading ||
-                                            (!isWidgetReady && !widgetError) ? (
-                                                <p className="mb-4">
-                                                    Loading song...
-                                                </p>
+                                            width="100%"
+                                            height={
+                                                gameState.hasGuessed
+                                                    ? "166"
+                                                    : "1"
+                                            }
+                                            allow="autoplay"
+                                            className={`rounded ${
+                                                gameState.hasGuessed
+                                                    ? ""
+                                                    : "opacity-0 pointer-events-none"
+                                            }`}
+                                        />
+                                    </div>
+
+                                    {/* Playback Controls */}
+                                    {!gameState.hasGuessed && (
+                                        <div className="text-center">
+                                            {widgetError ? (
+                                                <div className="space-y-3">
+                                                    <div className="text-4xl mb-2">
+                                                        ⚠️
+                                                    </div>
+                                                    <p className="text-red-500 text-sm mb-3">
+                                                        {widgetError}
+                                                    </p>
+                                                    {retryCount <
+                                                    MAX_RETRIES ? (
+                                                        <Button
+                                                            label={`Retry (${
+                                                                retryCount + 1
+                                                            }/${
+                                                                MAX_RETRIES + 1
+                                                            })`}
+                                                            onClick={
+                                                                retryWidgetInit
+                                                            }
+                                                            variant="secondary"
+                                                        />
+                                                    ) : (
+                                                        <p className="text-red-500 text-sm">
+                                                            Selecting different
+                                                            song...
+                                                        </p>
+                                                    )}
+                                                </div>
                                             ) : (
                                                 <div>
-                                                    <Button
-                                                        label={
-                                                            !isWidgetReady &&
-                                                            !widgetError
-                                                                ? "Loading..."
-                                                                : isPlaying
-                                                                ? `Playing (${playbackDurations[currentStage]}s)...`
-                                                                : getStageButtonText()
-                                                        }
-                                                        onClick={
-                                                            handleProgressivePlay
-                                                        }
-                                                        disabled={
-                                                            isPlaying ||
-                                                            currentStage >=
-                                                                playbackDurations.length ||
-                                                            !isWidgetReady
-                                                        }
-                                                        className="mb-4 mr-2"
-                                                    />
-                                                    <Button
-                                                        label={
-                                                            !isWidgetReady &&
-                                                            !widgetError
-                                                                ? "Loading..."
-                                                                : isPlaying
-                                                                ? "Playing..."
-                                                                : `Repeat (${
-                                                                      playbackDurations[
-                                                                          currentStage -
-                                                                              1
-                                                                      ] ||
-                                                                      playbackDurations[0]
-                                                                  }s)`
-                                                        }
-                                                        onClick={
-                                                            repeatCurrentStage
-                                                        }
-                                                        disabled={
-                                                            !isWidgetReady ||
-                                                            (isPlaying &&
-                                                                currentStage >=
-                                                                    playbackDurations.length)
-                                                        }
-                                                    />
-                                                </div>
-                                            )}
-                                            {!isWidgetReady && !widgetError && (
-                                                <div className="mt-2">
-                                                    <div className="w-full bg-gray-200 rounded-full h-1 mt-2">
-                                                        <div
-                                                            className="bg-[var(--accent)] h-1 rounded-full animate-pulse"
-                                                            style={{
-                                                                width: `${Math.min(
-                                                                    100,
-                                                                    (retryCount +
-                                                                        1) *
-                                                                        25
-                                                                )}%`,
-                                                            }}
-                                                        ></div>
-                                                    </div>
+                                                    {!isWidgetReady &&
+                                                    !widgetError ? (
+                                                        <div className="py-4">
+                                                            <div className="text-4xl mb-3 animate-spin">
+                                                                🎧
+                                                            </div>
+                                                            <p className="mb-4">
+                                                                Loading song...
+                                                            </p>
+                                                            <div className="w-full bg-gray-200 rounded-full h-2">
+                                                                <div
+                                                                    className="bg-[var(--accent)] h-2 rounded-full animate-pulse"
+                                                                    style={{
+                                                                        width: `${Math.min(
+                                                                            100,
+                                                                            (retryCount +
+                                                                                1) *
+                                                                                25
+                                                                        )}%`,
+                                                                    }}
+                                                                ></div>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                                                            <Button
+                                                                label={
+                                                                    isPlaying
+                                                                        ? `Playing (${playbackDurations[currentStage]}s)...`
+                                                                        : getStageButtonText()
+                                                                }
+                                                                onClick={
+                                                                    handleProgressivePlay
+                                                                }
+                                                                disabled={
+                                                                    isPlaying ||
+                                                                    currentStage >=
+                                                                        playbackDurations.length ||
+                                                                    !isWidgetReady
+                                                                }
+                                                                variant="accent"
+                                                                className="flex-1"
+                                                            />
+                                                            <Button
+                                                                label={
+                                                                    isPlaying
+                                                                        ? "Playing..."
+                                                                        : `Repeat (${
+                                                                              playbackDurations[
+                                                                                  currentStage -
+                                                                                      1
+                                                                              ] ||
+                                                                              playbackDurations[0]
+                                                                          }s)`
+                                                                }
+                                                                onClick={
+                                                                    repeatCurrentStage
+                                                                }
+                                                                disabled={
+                                                                    !isWidgetReady
+                                                                }
+                                                                variant="secondary"
+                                                                className="flex-1"
+                                                            />
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
                                     )}
+                                </Card>
+                            )}
+
+                            {/* Guessing Interface */}
+                            {gameState.currentSongTitle && (
+                                <Card variant="secondary">
+                                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                        <span className="text-2xl">🤔</span>
+                                        What&apos;s this song?
+                                    </h3>
+
+                                    {!gameState.hasGuessed ? (
+                                        <div className="space-y-4">
+                                            <input
+                                                type="text"
+                                                placeholder="Enter your guess..."
+                                                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
+                                                value={gameState.userGuess}
+                                                onChange={(e) =>
+                                                    setGameState((prev) => ({
+                                                        ...prev,
+                                                        userGuess:
+                                                            e.target.value,
+                                                    }))
+                                                }
+                                                onKeyPress={(e) =>
+                                                    e.key === "Enter" &&
+                                                    submitGuess()
+                                                }
+                                            />
+                                            <div className="flex flex-col sm:flex-row gap-3">
+                                                <Button
+                                                    label="Submit Guess"
+                                                    onClick={submitGuess}
+                                                    disabled={
+                                                        !gameState.userGuess.trim()
+                                                    }
+                                                    variant="accent"
+                                                    className="flex-1"
+                                                />
+                                                <Button
+                                                    label="Reveal Answer"
+                                                    onClick={revealAnswer}
+                                                    variant="secondary"
+                                                    className="flex-1"
+                                                />
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {/* Result Display */}
+                                            <div
+                                                className={`p-4 rounded-lg ${
+                                                    gameState.guessResult ===
+                                                    "correct"
+                                                        ? "bg-green-100 border-green-300"
+                                                        : gameState.guessResult ===
+                                                          "incorrect"
+                                                        ? "bg-red-100 border-red-300"
+                                                        : "bg-yellow-100 border-yellow-300"
+                                                }`}
+                                            >
+                                                {gameState.guessResult ===
+                                                "correct" ? (
+                                                    <div className="text-center">
+                                                        <div className="text-4xl mb-2">
+                                                            🎉
+                                                        </div>
+                                                        <p className="font-semibold text-green-800 mb-2">
+                                                            Correct!
+                                                        </p>
+                                                        <p className="text-green-700 text-sm">
+                                                            +
+                                                            {Math.max(
+                                                                1,
+                                                                6 - currentStage
+                                                            )}{" "}
+                                                            points
+                                                        </p>
+                                                        <p className="text-green-700 mt-2">
+                                                            <strong>
+                                                                {
+                                                                    gameState.currentSongTitle
+                                                                }
+                                                            </strong>{" "}
+                                                            by{" "}
+                                                            <strong>
+                                                                {
+                                                                    gameState.currentArtist
+                                                                }
+                                                            </strong>
+                                                        </p>
+                                                    </div>
+                                                ) : gameState.guessResult ===
+                                                  "incorrect" ? (
+                                                    <div className="text-center">
+                                                        <div className="text-4xl mb-2">
+                                                            ❌
+                                                        </div>
+                                                        <p className="font-semibold text-red-800 mb-2">
+                                                            Incorrect
+                                                        </p>
+                                                        <p className="text-red-700 text-sm">
+                                                            Your guess:{" "}
+                                                            <em>
+                                                                {
+                                                                    gameState.userGuess
+                                                                }
+                                                            </em>
+                                                        </p>
+                                                        <p className="text-red-700 text-sm">
+                                                            Correct answer:{" "}
+                                                            <strong>
+                                                                {
+                                                                    gameState.currentSongTitle
+                                                                }
+                                                            </strong>
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-center">
+                                                        <div className="text-4xl mb-2">
+                                                            🔍
+                                                        </div>
+                                                        <p className="font-semibold text-yellow-800 mb-2">
+                                                            Answer Revealed
+                                                        </p>
+                                                        <p className="text-yellow-700 text-sm">
+                                                            The song was:{" "}
+                                                            <strong>
+                                                                {
+                                                                    gameState.currentSongTitle
+                                                                }
+                                                            </strong>
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Next Round Button */}
+                                            <div className="text-center">
+                                                <Button
+                                                    label={
+                                                        gameState.currentRound >=
+                                                        gameState.totalRounds
+                                                            ? "Finish Game"
+                                                            : "Next Round"
+                                                    }
+                                                    onClick={nextRound}
+                                                    variant="accent"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </Card>
+                            )}
+
+                            {/* Loading States */}
+                            {(isSongLoading || isSelectingNewSong) && (
+                                <div className="text-center py-8">
+                                    <div className="text-4xl mb-4 animate-spin">
+                                        🎵
+                                    </div>
+                                    <p className="text-lg">
+                                        {isSelectingNewSong
+                                            ? "Finding new song..."
+                                            : "Loading song..."}
+                                    </p>
                                 </div>
                             )}
-                        </Card>
-                    )}
 
-                    {/* Guessing Interface */}
-                    {gameState.currentSongTitle && (
-                        <Card variant="secondary">
-                            <h3 className="text-lg font-semibold mb-4">
-                                What&apos;s this song?
-                            </h3>
-
-                            {!gameState.hasGuessed ? (
-                                <div className="space-y-4">
-                                    <input
-                                        type="text"
-                                        placeholder="Enter your guess..."
-                                        className="w-full p-3 border rounded-lg"
-                                        value={gameState.userGuess}
-                                        onChange={(e) =>
-                                            setGameState((prev) => ({
-                                                ...prev,
-                                                userGuess: e.target.value,
-                                            }))
-                                        }
-                                        onKeyPress={(e) =>
-                                            e.key === "Enter" && submitGuess()
-                                        }
-                                    />
-                                    <div className="flex space-x-3">
-                                        <Button
-                                            label="Submit Guess"
-                                            onClick={submitGuess}
-                                            disabled={
-                                                !gameState.userGuess.trim()
-                                            }
-                                        />
-                                        <Button
-                                            label="Reveal Answer"
-                                            onClick={revealAnswer}
-                                        />
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {/* Result Display */}
-                                    <div
-                                        className={`p-4 rounded-lg ${
-                                            gameState.guessResult === "correct"
-                                                ? "bg-green-100 border-green-300"
-                                                : gameState.guessResult ===
-                                                  "incorrect"
-                                                ? "bg-red-100 border-red-300"
-                                                : "bg-yellow-100 border-yellow-300"
-                                        }`}
-                                    >
-                                        {gameState.guessResult === "correct" ? (
-                                            <div>
-                                                <p className="font-semibold text-green-800">
-                                                    🎉 Correct!
-                                                </p>
-                                                <p className="text-green-700">
-                                                    +
-                                                    {Math.max(
-                                                        1,
-                                                        6 - currentStage
-                                                    )}{" "}
-                                                    points • The song is:{" "}
-                                                    <strong>
-                                                        {
-                                                            gameState.currentSongTitle
-                                                        }
-                                                    </strong>{" "}
-                                                    by{" "}
-                                                    <strong>
-                                                        {
-                                                            gameState.currentArtist
-                                                        }
-                                                    </strong>
-                                                </p>
-                                            </div>
-                                        ) : gameState.guessResult ===
-                                          "incorrect" ? (
-                                            <div>
-                                                <p className="font-semibold text-red-800">
-                                                    ❌ Incorrect
-                                                </p>
-                                                <p className="text-red-700">
-                                                    Your guess:{" "}
-                                                    <em>
-                                                        {gameState.userGuess}
-                                                    </em>
-                                                    <br />
-                                                    Correct answer:{" "}
-                                                    <strong>
-                                                        {
-                                                            gameState.currentSongTitle
-                                                        }
-                                                    </strong>
-                                                </p>
-                                            </div>
-                                        ) : (
-                                            <div>
-                                                <p className="font-semibold text-yellow-800">
-                                                    🔍 Answer Revealed
-                                                </p>
-                                                <p className="text-yellow-700">
-                                                    The song was:{" "}
-                                                    <strong>
-                                                        {
-                                                            gameState.currentSongTitle
-                                                        }
-                                                    </strong>
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Next Round Button */}
-                                    <div className="text-center">
-                                        <Button
-                                            label={
-                                                gameState.currentRound >=
-                                                gameState.totalRounds
-                                                    ? "Finish Game"
-                                                    : "Next Round"
-                                            }
-                                            onClick={nextRound}
-                                        />
-                                    </div>
+                            {songError && !isSelectingNewSong && (
+                                <div className="text-center py-8 text-red-500">
+                                    <p>Switching to different song...</p>
                                 </div>
                             )}
-                        </Card>
-                    )}
-
-                    {/* Loading States */}
-                    {(isSongLoading || isSelectingNewSong) && (
-                        <div className="text-center py-8">
-                            <p>
-                                {isSelectingNewSong
-                                    ? "Finding new song..."
-                                    : "Loading song..."}
-                            </p>
                         </div>
                     )}
-                    {songError && !isSelectingNewSong && (
-                        <div className="text-center py-8 text-red-500">
-                            <p>Switching to different song...</p>
-                        </div>
-                    )}
-                </div>
-            )}
+            </div>
+            <FloatingNotesBackground />
         </div>
     );
 };

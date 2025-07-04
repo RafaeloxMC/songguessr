@@ -33,7 +33,6 @@ body {
     color: var(--foreground);
 }
 
-input,
 textarea,
 select {
     border-radius: 10px;
@@ -41,8 +40,22 @@ select {
     outline: 1px solid var(--secondary);
 }
 
+input {
+    border-radius: 10px;
+    border: 1px solid var(--text-secondary);
+}
+
+input::placeholder,
+textarea::placeholder,
+select::placeholder {
+    color: var(--text-secondary);
+}
+:focus {
+    outline: 1px solid var(--accent);
+}
+
 a {
-    color: var(--accent);
+    color: var(--text-secondary);
     text-decoration: underline;
 }
 

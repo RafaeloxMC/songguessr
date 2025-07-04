@@ -48,7 +48,7 @@ const HomePage = () => {
     ];
 
     return (
-        <div className="flex flex-col items-center justify-center space-y-16 max-w-6xl mx-auto px-4">
+        <div className="flex flex-col items-center justify-center space-y-16 max-w-6xl mx-auto px-4 pt-16">
             {/* Floating Musical Notes Background */}
             <FloatingNotesBackground />
 

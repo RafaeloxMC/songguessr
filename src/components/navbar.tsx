@@ -15,14 +15,11 @@ const Navbar = () => {
                     <Link href="/play" className="hover:underline navbar-link">
                         Play
                     </Link>
-                    <Link href="/about" className="hover:underline navbar-link">
-                        About
-                    </Link>
                     <Link
-                        href="/contact"
+                        href="/auth/login"
                         className="hover:underline navbar-link"
                     >
-                        Contact
+                        Login
                     </Link>
                 </nav>
             </div>

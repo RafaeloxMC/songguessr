@@ -8,10 +8,10 @@ export async function POST(request: NextRequest) {
     try {
         await connectDB();
         const body = await request.json();
-        const { username, email, password } = body;
+        const { email, password } = body;
 
         return await User.findOne({
-            $or: [{ email }, { username }],
+            email: email,
         }).then(async (existingUser) => {
             if (existingUser) {
                 const isMatchingPw = await argon2.verify(
