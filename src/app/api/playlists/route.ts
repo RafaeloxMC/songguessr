@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 export async function GET() {
     await connectDB();
     const playlists = await PlaylistManager.getAllPlaylists();
-    return Response.json(playlists);
+    return NextResponse.json(playlists);
 }
 
 export async function POST(request: Request) {

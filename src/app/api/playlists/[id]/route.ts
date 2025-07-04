@@ -6,10 +6,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
     request: Request,
-    { params }: { params: { id: string | string[] } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const arg = await params;
-    const playlistId = Array.isArray(arg.id) ? arg.id.join("/") : arg.id;
+    const playlistId = arg.id;
 
     const data = await request.json();
     const iPlaylist = data as unknown as IPlaylist;
@@ -40,10 +40,10 @@ export async function PATCH(
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string[] } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const arg = await params;
-    const playlistId = Array.isArray(arg.id) ? arg.id.join("/") : arg.id;
+    const playlistId = arg.id;
     const playlist = await PlaylistManager.getPlaylist(playlistId);
     await connectDB();
 
