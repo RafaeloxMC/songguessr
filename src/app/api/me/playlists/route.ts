@@ -1,3 +1,4 @@
+import { connectDB } from "@/database/db";
 import Playlist from "@/database/schemas/Playlist";
 import { validateToken } from "@/util/accounts/tokens";
 import { headers } from "next/headers";
@@ -13,6 +14,8 @@ export async function GET() {
             { status: 401 }
         );
     }
+
+    await connectDB();
 
     const playlists = await Playlist.find({ createdBy: user._id });
     return NextResponse.json({ success: true, playlists }, { status: 200 });

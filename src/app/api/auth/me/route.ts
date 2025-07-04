@@ -1,3 +1,4 @@
+import { connectDB } from "@/database/db";
 import User from "@/database/schemas/User";
 import { validateToken } from "@/util/accounts/tokens";
 import { Types } from "mongoose";
@@ -26,6 +27,7 @@ export async function GET() {
             const bufferData = userIdWithBuffer.buffer;
             const bufferArray = Object.values(bufferData) as number[];
             const buffer = Buffer.from(bufferArray);
+            await connectDB();
             const userId = new Types.ObjectId(buffer);
             user = (await User.findOne({ _id: userId })) ?? user;
         }

@@ -1,7 +1,9 @@
+import { connectDB } from "@/database/db";
 import Song, { ISong } from "@/database/schemas/Song";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+    await connectDB();
     const songs: ISong[] = (await Song.find()
         .sort({ createdAt: -1 })
         .limit(100)
