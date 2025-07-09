@@ -57,7 +57,7 @@ function DashboardPage() {
     );
 
     const { data: playlistsData, error: playlistsError } = useSWR(
-        tokenChecked && token ? "/api/playlists" : null,
+        tokenChecked && token ? "/api/me/playlists" : null,
         token ? createFetcher(token) : null
     );
 
@@ -68,10 +68,10 @@ function DashboardPage() {
 
     useEffect(() => {
         if (userData && playlistsData && songsData) {
-            if (userData.success && userData.user) {
+            if (userData.success == true && userData.user) {
                 setDashboardData({
                     user: userData.user,
-                    playlists: playlistsData.slice(0, 6),
+                    playlists: playlistsData.playlists?.slice(0, 6) || [],
                     recentSongs: songsData.songs?.slice(0, 10) || [],
                     totalSongs: songsData.songs?.length || 0,
                 });
@@ -311,7 +311,7 @@ function DashboardPage() {
                                         label="Browse Playlists"
                                         icon={<span>📚</span>}
                                         onClick={() =>
-                                            setSelectedTab("playlists")
+                                            router.push("/playlists")
                                         }
                                         variant="primary"
                                     />
@@ -337,13 +337,22 @@ function DashboardPage() {
                         >
                             <div className="flex justify-between items-center">
                                 <h2 className="text-2xl font-bold text-[var(--text)]">
-                                    🎵 Available Playlists
+                                    🎵 My Playlists
                                 </h2>
-                                <Button
-                                    label="View All"
-                                    onClick={() => router.push("/play")}
-                                    variant="accent"
-                                />
+                                <div className="flex flex-col md:flex-row gap-2">
+                                    <Button
+                                        label="Create Playlist"
+                                        onClick={() =>
+                                            router.push("/playlists/create")
+                                        }
+                                        variant="primary"
+                                    />
+                                    <Button
+                                        label="View All"
+                                        onClick={() => router.push("/play")}
+                                        variant="accent"
+                                    />
+                                </div>
                             </div>
 
                             {dashboardData.playlists.length > 0 ? (

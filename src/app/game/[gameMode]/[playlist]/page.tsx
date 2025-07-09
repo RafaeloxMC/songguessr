@@ -450,6 +450,11 @@ const GamePage = ({ params }: GamePageProps) => {
 
     const repeatCurrentStage = () => {
         if (!widget || !isWidgetReady) return;
+
+        if (currentStage === 0) {
+            setCurrentStage(1);
+        }
+
         widget.seekTo(playbackStartTime * 1000);
         widget.play();
         setIsPlaying(true);
@@ -506,7 +511,10 @@ const GamePage = ({ params }: GamePageProps) => {
         const normalizedTitle = normalizeString(gameState.currentSongTitle);
         const isCorrect = normalizedGuess === normalizedTitle;
 
-        const points = isCorrect ? Math.max(1, 6 - currentStage) : 0;
+        const effectiveStage = Math.max(1, currentStage);
+        const points = isCorrect
+            ? Math.min(Math.max(1, 5 - (effectiveStage - 1)), 5)
+            : 0;
 
         widget?.seekTo(playbackStartTime * 1000);
         widget?.pause();
@@ -1020,9 +1028,17 @@ const GamePage = ({ params }: GamePageProps) => {
                                                         </p>
                                                         <p className="text-green-700 text-sm">
                                                             +
-                                                            {Math.max(
-                                                                1,
-                                                                6 - currentStage
+                                                            {Math.min(
+                                                                Math.max(
+                                                                    1,
+                                                                    5 -
+                                                                        (Math.max(
+                                                                            1,
+                                                                            currentStage
+                                                                        ) -
+                                                                            1)
+                                                                ),
+                                                                5
                                                             )}{" "}
                                                             points
                                                         </p>

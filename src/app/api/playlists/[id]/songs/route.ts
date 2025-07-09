@@ -116,7 +116,13 @@ export async function GET(
             );
         }
 
-        return NextResponse.json(playlist, { status: 200 });
+        return NextResponse.json(
+            {
+                success: true,
+                playlist,
+            },
+            { status: 200 }
+        );
     } catch (error) {
         console.error("Error fetching playlist:", error);
         return NextResponse.json(

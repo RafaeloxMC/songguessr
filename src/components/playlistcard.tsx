@@ -15,7 +15,7 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
 }) => {
     return (
         <div
-            className="rounded-lg shadow-[0_4px_0_rgba(0,0,0,0.3)] transition-all duration-150 bg-[var(--primary)] text-[var(--text)] overflow-hidden hover:shadow-none hover:translate-y-1 active:shadow-none active:translate-y-1 flex flex-col"
+            className="rounded-lg shadow-[0_4px_0_rgba(0,0,0,0.3)] transition-all duration-150 bg-[var(--primary)] text-[var(--text)] overflow-hidden hover:shadow-none hover:translate-y-1 active:shadow-none active:translate-y-1 flex flex-col h-full"
             onClick={onClick}
         >
             <div className="w-full h-48 overflow-hidden relative flex-shrink-0">

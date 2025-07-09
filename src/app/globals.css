@@ -34,15 +34,11 @@ body {
 }
 
 textarea,
-select {
-    border-radius: 10px;
-    border: 0px;
-    outline: 1px solid var(--secondary);
-}
-
+select,
 input {
     border-radius: 10px;
-    border: 1px solid var(--text-secondary);
+    border: 0px;
+    outline: 1px solid var(--text-secondary);
 }
 
 input::placeholder,
@@ -59,4 +55,26 @@ a {
 a.navbar-link {
     color: var(--text);
     text-decoration: none;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-thumb {
+    background-color: var(--text-secondary);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-track {
+    background-color: transparent;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text);
+}
+::-webkit-scrollbar-corner {
+    background-color: transparent;
+}
+::-webkit-scrollbar-button {
+    display: none;
 }

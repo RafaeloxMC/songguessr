@@ -1,6 +1,8 @@
 import { connectDB } from "@/database/db";
 import Playlist, { IPlaylist } from "@/database/schemas/Playlist";
+import { validateToken } from "@/util/accounts/tokens";
 import { PlaylistManager } from "@/util/PlaylistManager";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -10,8 +12,20 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const token = (await headers()).get("Authorization");
+
+    const user = await validateToken(token);
+
+    if (!user || !user._id) {
+        return NextResponse.json(
+            { success: false, error: "Unauthorized" },
+            { status: 401 }
+        );
+    }
+
     const data = await request.json();
     const iPlaylist = data as unknown as IPlaylist;
+    iPlaylist.createdBy = user._id;
 
     await connectDB();
     return await Playlist.find({ name: iPlaylist.name }).then(

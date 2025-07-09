@@ -21,7 +21,7 @@ export async function generateToken(
         );
     }
     const token = await new jose.SignJWT({
-        _id: user._id,
+        _id: user._id.toString(),
         password: user.password,
     })
         .setProtectedHeader({ alg: "HS256" })
