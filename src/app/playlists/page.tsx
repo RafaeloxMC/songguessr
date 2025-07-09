@@ -66,7 +66,7 @@ function PlaylistsPage() {
     ];
 
     const handlePlaylistClick = (playlist: IPlaylist) => {
-        router.push(`/game/classic/${playlist._id.toString()}`);
+        router.push(`/playlists/${playlist._id.toString()}`);
     };
 
     if (isLoading) {
