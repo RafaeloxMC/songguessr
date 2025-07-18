@@ -270,9 +270,12 @@ function PlaylistsPage() {
                                             {playlist.playlistType}
                                         </div>
 
-                                        <div className="absolute bottom-2 right-2 bg-[var(--primary)] text-[var(--text)] px-2 py-1 rounded text-xs transition-transform duration-150 group-hover:translate-y-1">
-                                            {playlist.songCount || 0} songs
-                                        </div>
+                                        {playlist.selectionType.toLowerCase() ===
+                                            "manual" && (
+                                            <div className="absolute bottom-2 right-2 bg-[var(--primary)] text-[var(--text)] px-2 py-1 rounded text-xs transition-transform duration-150 group-hover:translate-y-1">
+                                                {playlist.songCount || 0} songs
+                                            </div>
+                                        )}
                                     </div>
                                 </motion.div>
                             ))}

@@ -2,7 +2,7 @@
 import Button from "@/components/button";
 import Card from "@/components/card";
 import Image from "next/image";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import React from "react";
 import { motion } from "framer-motion";
 import { StatCard } from "@/components/hero/statscard";
@@ -12,6 +12,8 @@ import { PulsingTitle } from "@/components/hero/pulsingtitle";
 import FloatingNotesBackground from "@/components/floatingnotesbg";
 
 const HomePage = () => {
+    const router = useRouter();
+
     const gameFeatures = [
         {
             icon: "🎵",
@@ -62,14 +64,17 @@ const HomePage = () => {
                         guessing game! Challenge yourself with audio clips,
                         emoji puzzles, lyrics, and more.
                     </p>
-
                     <Button
                         label="Start Playing Now"
                         icon={<span>🎵</span>}
-                        onClick={() => redirect("/play")}
+                        onClick={() => router.push("/play")}
                         variant="primary"
                         className="text-xl px-4 py-2 mt-8"
                     />
+                    <span className="text-sm text-[var(--text-secondary)]">
+                        <br />
+                        No account required, just pure music fun! 🎶
+                    </span>
                 </div>
             </AnimatedSection>
 
@@ -177,30 +182,25 @@ const HomePage = () => {
                             challenge your friends, and become the ultimate
                             music guru! 🏆
                         </p>
-
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                            <Button
-                                label="Play Now"
-                                icon={<span>🚀</span>}
-                                onClick={() => redirect("/play")}
-                                variant="primary"
-                                className="text-lg px-4 py-2"
-                            />
-
-                            <motion.div whileTap={{ scale: 0.95 }}>
-                                <Button
-                                    label="Learn More"
-                                    icon={<span>📖</span>}
-                                    onClick={() =>
-                                        redirect(
-                                            "https://github.com/RafaeloxMC/songguessr"
-                                        )
-                                    }
-                                    variant="secondary"
-                                    className="text-lg px-4 py-2"
-                                />
-                            </motion.div>
-                        </div>
+                        <Button
+                            label="Play Now"
+                            icon={<span>🚀</span>}
+                            onClick={() => router.push("/play")}
+                            variant="primary"
+                            className="text-lg px-4 py-2 mx-2"
+                        />
+                        <Button
+                            label="Learn More"
+                            icon={<span>📖</span>}
+                            onClick={() =>
+                                window.open(
+                                    "https://github.com/RafaeloxMC/songguessr",
+                                    "_blank"
+                                )
+                            }
+                            variant="secondary"
+                            className="text-lg px-4 py-2 mx-2"
+                        />
                     </div>
                 </Card>
             </AnimatedSection>

@@ -16,6 +16,12 @@ const Navbar = () => {
                         Play
                     </Link>
                     <Link
+                        href="/playlists"
+                        className="hover:underline navbar-link"
+                    >
+                        Playlists
+                    </Link>
+                    <Link
                         href="/dashboard"
                         className="hover:underline navbar-link"
                     >
