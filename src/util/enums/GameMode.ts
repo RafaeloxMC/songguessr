@@ -1,5 +1,6 @@
 export enum GameMode {
-	CLASSIC = "classic",
-	EMOJI = "emoji",
-	LYRICS = "lyrics",
+    CLASSIC = "classic",
+    ARTIST = "artist",
+    EMOJI = "emoji",
+    LYRICS = "lyrics",
 }

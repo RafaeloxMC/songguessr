@@ -38,6 +38,8 @@ const PlayPage = () => {
         switch (mode) {
             case "classic":
                 return "🎵";
+            case "artist":
+                return "🎤";
             case "emoji":
                 return "😊";
             case "lyrics":
@@ -55,7 +57,6 @@ const PlayPage = () => {
     };
 
     const GameModeCard = ({
-        mode,
         icon,
         title,
         description,
@@ -75,13 +76,7 @@ const PlayPage = () => {
             transition={{ duration: 0.2 }}
         >
             <Card
-                variant={
-                    mode === "classic"
-                        ? "primary"
-                        : mode === "emoji"
-                        ? "secondary"
-                        : "accent"
-                }
+                variant={disabled ? "secondary" : "primary"}
                 className={`cursor-pointer hover:shadow-none hover:translate-y-1 h-full ${
                     disabled
                         ? "opacity-50 cursor-not-allowed hover:shadow-[0_4px_0_rgba(0,0,0,0.3)] hover:translate-y-0"
@@ -152,13 +147,20 @@ const PlayPage = () => {
                             <h2 className="text-3xl font-bold text-[var(--text)] mb-8">
                                 Choose Your Game Mode
                             </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
                                 <GameModeCard
                                     mode="classic"
                                     icon="🎵"
                                     title="Classic Mode"
                                     description="Guess the song by hearing a short clip. The longer you listen, the fewer points you earn!"
                                     onClick={() => setGameMode("classic")}
+                                />
+                                <GameModeCard
+                                    mode="artist"
+                                    icon="🎤"
+                                    title="Artist Mode"
+                                    description="Hear the song and guess who performs it. Test your knowledge of artists and bands!"
+                                    onClick={() => setGameMode("artist")}
                                 />
                                 <GameModeCard
                                     mode="emoji"
