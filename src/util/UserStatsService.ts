@@ -4,6 +4,7 @@ import GameSession, {
     IGameSession,
     IGameRound,
 } from "@/database/schemas/GameSession";
+import { IPlaylist } from "@/database/schemas/Playlist";
 import { GameStatus } from "@/util/enums/GameStatus";
 import { Types } from "mongoose";
 
@@ -158,7 +159,7 @@ export class UserStatsService {
                 return {
                     id: (session._id as Types.ObjectId).toString(),
                     playlistName:
-                        (session.playlistId as { name: string })?.name ||
+                        (session.playlistId as IPlaylist)?.name ||
                         "Unknown Playlist",
                     gameMode: session.gameMode,
                     totalScore: session.totalScore,
