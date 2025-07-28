@@ -7,6 +7,7 @@ import { ISong } from "@/database/schemas/Song";
 import { extractSoundCloudURL } from "@/util/SCUtils";
 import { GameMode } from "@/util/enums/GameMode";
 import { SoundCloudWidget } from "@/util/types/SoundCloudWidget";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import React, { useCallback } from "react";
 import useSWR from "swr";
@@ -388,12 +389,20 @@ const GameEngine = ({ gameMode, playlistId }: GameEngineProps) => {
         try {
             const token = localStorage.getItem("token");
 
-            const response = await fetch("/api/game/start", {
+            const endpoint = token
+                ? "/api/game/start"
+                : "/api/game/guest/start";
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            };
+
+            if (token) {
+                headers.Authorization = token;
+            }
+
+            const response = await fetch(endpoint, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: token || "",
-                },
+                headers,
                 body: JSON.stringify({
                     playlistId: decodedPlaylist,
                     gameMode: gameMode,
@@ -730,6 +739,18 @@ const GameEngine = ({ gameMode, playlistId }: GameEngineProps) => {
                             : playlist_data?.name || "Unknown"}
                     </p>
                 </div>
+
+                {!localStorage.getItem("token") && (
+                    <div className="mb-4 text-center">
+                        <div className="bg-yellow-200 border border-yellow-400 text-yellow-800 px-4 py-2 rounded-lg inline-block">
+                            🎮 Playing as Guest -
+                            <Link href="/auth/login" className="underline ml-1">
+                                Login
+                            </Link>{" "}
+                            to save your progress!
+                        </div>
+                    </div>
+                )}
 
                 {/* Game Setup */}
                 {gameState.gameStatus === "setup" && (

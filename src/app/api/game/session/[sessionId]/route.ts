@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { sessionId: string } }
+    { params }: { params: Promise<{ sessionId: string }> }
 ) {
     const token = (await headers()).get("Authorization");
 
@@ -22,7 +22,7 @@ export async function GET(
     try {
         await connectDB();
 
-        const { sessionId } = params;
+        const { sessionId } = await params;
 
         if (!sessionId) {
             return NextResponse.json(

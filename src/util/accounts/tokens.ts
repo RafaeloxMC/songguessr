@@ -1,6 +1,9 @@
-import { IUser } from "@/database/schemas/User";
-import { Types } from "mongoose";
 import * as jose from "jose";
+
+interface TokenUser {
+    _id: string;
+    password: string;
+}
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -14,7 +17,7 @@ if (!JWT_SECRET) {
 }
 
 export async function generateToken(
-    user: IUser | { _id: string; password: string }
+    user: TokenUser | { _id: string; password: string }
 ) {
     if (!JWT_SECRET) {
         throw new Error(
@@ -32,7 +35,7 @@ export async function generateToken(
 
 export async function validateToken(
     token: string | null
-): Promise<IUser | null> {
+): Promise<TokenUser | null> {
     if (!token) {
         return null;
     }
@@ -68,19 +71,28 @@ export async function validateToken(
                         .buffer as { [key: string]: number }
                 ) as number[];
                 const buffer = Buffer.from(bufferArray);
-                userIdString = new Types.ObjectId(buffer).toString();
+                const hexString = buffer.toString("hex");
+                if (hexString.length === 24) {
+                    userIdString = hexString;
+                } else {
+                    throw new Error("Invalid ObjectId buffer length");
+                }
             } else {
                 throw new Error("Invalid user ID format in token");
             }
 
-            if (!Types.ObjectId.isValid(userIdString)) {
+            if (
+                !userIdString ||
+                userIdString.length !== 24 ||
+                !/^[0-9a-fA-F]{24}$/.test(userIdString)
+            ) {
                 throw new Error("Invalid ObjectId format");
             }
 
             return {
                 _id: userIdString,
                 password: payload.password as string,
-            } as unknown as IUser;
+            } as TokenUser;
         }
         return null;
     } catch (error) {

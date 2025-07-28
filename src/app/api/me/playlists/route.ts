@@ -30,7 +30,7 @@ export async function GET() {
             "buffer" in user._id
         ) {
             const bufferArray = Object.values(
-                user._id.buffer as { [key: string]: number }
+                (user._id as { buffer: { [key: string]: number } }).buffer
             ) as number[];
             const buffer = Buffer.from(bufferArray);
             userIdString = new Types.ObjectId(buffer).toString();

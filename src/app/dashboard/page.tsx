@@ -16,13 +16,27 @@ interface DashboardData {
     user: IUser;
     playlists: IPlaylist[];
     recentSongs: ISong[];
+    gameHistory: GameHistoryItem[];
     totalSongs: number;
+}
+
+interface GameHistoryItem {
+    id: string;
+    playlistName: string;
+    gameMode: string;
+    totalScore: number;
+    maxPossibleScore: number;
+    accuracy: number;
+    totalRounds: number;
+    sessionStartTime: Date;
+    sessionEndTime?: Date;
+    totalGameTime?: number;
 }
 
 function DashboardPage() {
     const router = useRouter();
     const [selectedTab, setSelectedTab] = useState<
-        "overview" | "playlists" | "songs"
+        "overview" | "playlists" | "songs" | "history"
     >("overview");
     const [token, setToken] = useState<string | null>(null);
     const [tokenChecked, setTokenChecked] = useState(false);
@@ -98,9 +112,27 @@ function DashboardPage() {
         }
     );
 
+    const {
+        data: gameHistoryData,
+        error: gameHistoryError,
+        isLoading: gameHistoryLoading,
+    } = useSWR(
+        tokenChecked && token ? "/api/me/game-history?limit=5" : null,
+        token ? createFetcher(token) : null,
+        {
+            revalidateOnFocus: false,
+            shouldRetryOnError: false,
+        }
+    );
+
     useEffect(() => {
-        if (userError || playlistsError || songsError) {
-            const isAuthError = [userError, playlistsError, songsError].some(
+        if (userError || playlistsError || songsError || gameHistoryError) {
+            const isAuthError = [
+                userError,
+                playlistsError,
+                songsError,
+                gameHistoryError,
+            ].some(
                 (error) =>
                     error &&
                     (error.message?.includes("Unauthorized") ||
@@ -113,13 +145,11 @@ function DashboardPage() {
                 return;
             }
         }
-    }, [userError, playlistsError, songsError, router]);
+    }, [userError, playlistsError, songsError, gameHistoryError, router]);
 
-    // Create a safe user object with fallback values
     const getSafeUserData = () => {
         if (!userData?.user && !userData?.id) return null;
 
-        // If userData has user property, use it; otherwise use userData directly
         const rawUser = userData.user || userData;
 
         return {
@@ -159,7 +189,8 @@ function DashboardPage() {
         return null;
     }
 
-    const isLoading = userLoading || playlistsLoading || songsLoading;
+    const isLoading =
+        userLoading || playlistsLoading || songsLoading || gameHistoryLoading;
     if (isLoading) {
         return (
             <div className="min-h-screen bg-[var(--background)] relative mt-16">
@@ -177,7 +208,8 @@ function DashboardPage() {
         );
     }
 
-    const hasError = userError || playlistsError || songsError;
+    const hasError =
+        userError || playlistsError || songsError || gameHistoryError;
     if (hasError) {
         return (
             <div className="min-h-screen bg-[var(--background)] relative mt-16">
@@ -192,7 +224,8 @@ function DashboardPage() {
                         <p className="text-sm text-[var(--text-secondary)] mb-4">
                             {userError?.message ||
                                 playlistsError?.message ||
-                                songsError?.message}
+                                songsError?.message ||
+                                gameHistoryError?.message}
                         </p>
                         <Button
                             label="Try Again"
@@ -274,6 +307,7 @@ function DashboardPage() {
         user: safeUser,
         playlists: playlistsData?.playlists?.slice(0, 6) || [],
         recentSongs: songsData?.songs?.slice(0, 10) || [],
+        gameHistory: gameHistoryData?.gameHistory || [],
         totalSongs: songsData?.songs?.length || 0,
     };
 
@@ -302,20 +336,18 @@ function DashboardPage() {
                     transition={{ duration: 0.5, delay: 0.1 }}
                     className="flex justify-center space-x-4"
                 >
-                    {(["overview", "playlists", "songs"] as const).map(
-                        (tab) => (
-                            <Button
-                                key={tab}
-                                label={
-                                    tab.charAt(0).toUpperCase() + tab.slice(1)
-                                }
-                                variant={
-                                    selectedTab === tab ? "accent" : "secondary"
-                                }
-                                onClick={() => setSelectedTab(tab)}
-                            />
-                        )
-                    )}
+                    {(
+                        ["overview", "playlists", "songs", "history"] as const
+                    ).map((tab) => (
+                        <Button
+                            key={tab}
+                            label={tab.charAt(0).toUpperCase() + tab.slice(1)}
+                            variant={
+                                selectedTab === tab ? "accent" : "secondary"
+                            }
+                            onClick={() => setSelectedTab(tab)}
+                        />
+                    ))}
                 </motion.div>
 
                 <AnimatePresence mode="wait">
@@ -432,6 +464,106 @@ function DashboardPage() {
                                     />
                                 </div>
                             </Card>
+
+                            {/* Recent Games */}
+                            {dashboardData.gameHistory.length > 0 && (
+                                <Card variant="primary" className="p-6">
+                                    <h2 className="text-2xl font-bold mb-4 text-center">
+                                        🎮 Recent Games
+                                    </h2>
+                                    <div className="space-y-3">
+                                        {dashboardData.gameHistory.map(
+                                            (game, index) => (
+                                                <motion.div
+                                                    key={game.id}
+                                                    initial={{
+                                                        opacity: 0,
+                                                        x: -20,
+                                                    }}
+                                                    animate={{
+                                                        opacity: 1,
+                                                        x: 0,
+                                                    }}
+                                                    transition={{
+                                                        duration: 0.3,
+                                                        delay: index * 0.1,
+                                                    }}
+                                                >
+                                                    <Card
+                                                        variant="secondary"
+                                                        className="p-4"
+                                                    >
+                                                        <div className="flex justify-between items-center">
+                                                            <div className="flex-1">
+                                                                <h3 className="font-semibold text-lg">
+                                                                    {
+                                                                        game.playlistName
+                                                                    }
+                                                                </h3>
+                                                                <p className="text-sm text-[var(--text-secondary)]">
+                                                                    {game.gameMode
+                                                                        .charAt(
+                                                                            0
+                                                                        )
+                                                                        .toUpperCase() +
+                                                                        game.gameMode.slice(
+                                                                            1
+                                                                        )}{" "}
+                                                                    Mode
+                                                                </p>
+                                                                <div className="flex gap-2 mt-2">
+                                                                    <span className="bg-[var(--accent)] text-white px-2 py-1 rounded text-xs">
+                                                                        Score:{" "}
+                                                                        {
+                                                                            game.totalScore
+                                                                        }
+                                                                        /
+                                                                        {
+                                                                            game.maxPossibleScore
+                                                                        }
+                                                                    </span>
+                                                                    <span className="bg-[var(--secondary)] px-2 py-1 rounded text-xs">
+                                                                        {Math.round(
+                                                                            game.accuracy
+                                                                        )}
+                                                                        %
+                                                                        accuracy
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <div className="text-lg font-bold">
+                                                                    {Math.round(
+                                                                        (game.totalScore /
+                                                                            game.maxPossibleScore) *
+                                                                            100
+                                                                    )}
+                                                                    %
+                                                                </div>
+                                                                <div className="text-sm text-[var(--text-secondary)]">
+                                                                    {new Date(
+                                                                        game.sessionEndTime ||
+                                                                            game.sessionStartTime
+                                                                    ).toLocaleDateString()}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </Card>
+                                                </motion.div>
+                                            )
+                                        )}
+                                    </div>
+                                    <div className="text-center mt-4">
+                                        <Button
+                                            label="View All Games"
+                                            onClick={() =>
+                                                setSelectedTab("history")
+                                            }
+                                            variant="primary"
+                                        />
+                                    </div>
+                                </Card>
+                            )}
                         </motion.div>
                     )}
 
@@ -612,6 +744,174 @@ function DashboardPage() {
                                         Songs will appear here once they&apos;re
                                         added to the database.
                                     </p>
+                                </Card>
+                            )}
+                        </motion.div>
+                    )}
+
+                    {selectedTab === "history" && (
+                        <motion.div
+                            key="history"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className="space-y-6"
+                        >
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-2xl font-bold text-[var(--text)]">
+                                    🎮 Game History
+                                </h2>
+                            </div>
+
+                            {dashboardData.gameHistory.length > 0 ? (
+                                <div className="space-y-4">
+                                    {dashboardData.gameHistory.map(
+                                        (game, index) => (
+                                            <motion.div
+                                                key={game.id}
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{
+                                                    duration: 0.3,
+                                                    delay: index * 0.05,
+                                                }}
+                                            >
+                                                <Card
+                                                    variant="primary"
+                                                    className="p-6"
+                                                >
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="flex-1">
+                                                            <h3 className="font-semibold text-xl mb-2">
+                                                                {
+                                                                    game.playlistName
+                                                                }
+                                                            </h3>
+                                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                                                <div>
+                                                                    <p className="text-sm text-[var(--text-secondary)]">
+                                                                        Game
+                                                                        Mode
+                                                                    </p>
+                                                                    <p className="font-semibold">
+                                                                        {game.gameMode
+                                                                            .charAt(
+                                                                                0
+                                                                            )
+                                                                            .toUpperCase() +
+                                                                            game.gameMode.slice(
+                                                                                1
+                                                                            )}
+                                                                    </p>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-sm text-[var(--text-secondary)]">
+                                                                        Score
+                                                                    </p>
+                                                                    <p className="font-semibold">
+                                                                        {
+                                                                            game.totalScore
+                                                                        }
+                                                                        /
+                                                                        {
+                                                                            game.maxPossibleScore
+                                                                        }
+                                                                    </p>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-sm text-[var(--text-secondary)]">
+                                                                        Accuracy
+                                                                    </p>
+                                                                    <p className="font-semibold">
+                                                                        {Math.round(
+                                                                            game.accuracy
+                                                                        )}
+                                                                        %
+                                                                    </p>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-sm text-[var(--text-secondary)]">
+                                                                        Rounds
+                                                                    </p>
+                                                                    <p className="font-semibold">
+                                                                        {
+                                                                            game.totalRounds
+                                                                        }
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex gap-2 mb-2">
+                                                                <span
+                                                                    className={`px-3 py-1 rounded text-sm font-semibold ${
+                                                                        game.totalScore /
+                                                                            game.maxPossibleScore >=
+                                                                        0.8
+                                                                            ? "bg-green-100 text-green-800"
+                                                                            : game.totalScore /
+                                                                                  game.maxPossibleScore >=
+                                                                              0.6
+                                                                            ? "bg-yellow-100 text-yellow-800"
+                                                                            : "bg-red-100 text-red-800"
+                                                                    }`}
+                                                                >
+                                                                    {Math.round(
+                                                                        (game.totalScore /
+                                                                            game.maxPossibleScore) *
+                                                                            100
+                                                                    )}
+                                                                    % Score
+                                                                </span>
+                                                                {game.totalGameTime && (
+                                                                    <span className="bg-[var(--secondary)] px-3 py-1 rounded text-sm">
+                                                                        {Math.round(
+                                                                            game.totalGameTime /
+                                                                                1000 /
+                                                                                60
+                                                                        )}{" "}
+                                                                        min
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <div className="text-sm text-[var(--text-secondary)]">
+                                                                {new Date(
+                                                                    game.sessionEndTime ||
+                                                                        game.sessionStartTime
+                                                                ).toLocaleDateString()}
+                                                            </div>
+                                                            <div className="text-xs text-[var(--text-secondary)]">
+                                                                {new Date(
+                                                                    game.sessionEndTime ||
+                                                                        game.sessionStartTime
+                                                                ).toLocaleTimeString()}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </Card>
+                                            </motion.div>
+                                        )
+                                    )}
+                                </div>
+                            ) : (
+                                <Card
+                                    variant="secondary"
+                                    className="text-center py-12"
+                                >
+                                    <div className="text-4xl mb-4">🎮</div>
+                                    <h3 className="text-xl font-bold mb-2">
+                                        No Game History Yet
+                                    </h3>
+                                    <p className="text-sm text-[var(--text-secondary)] mb-4">
+                                        Start playing to see your game history
+                                        here!
+                                    </p>
+                                    <Button
+                                        label="Play Your First Game"
+                                        onClick={() => router.push("/play")}
+                                        variant="accent"
+                                    />
                                 </Card>
                             )}
                         </motion.div>

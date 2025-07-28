@@ -4,6 +4,7 @@ import { validateToken } from "@/util/accounts/tokens";
 import { PlaylistManager } from "@/util/PlaylistManager";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { Types } from "mongoose";
 
 export async function GET() {
     await connectDB();
@@ -22,10 +23,9 @@ export async function POST(request: Request) {
             { status: 401 }
         );
     }
-
     const data = await request.json();
     const iPlaylist = data as unknown as IPlaylist;
-    iPlaylist.createdBy = user._id;
+    iPlaylist.createdBy = new Types.ObjectId(user._id);
 
     await connectDB();
     return await Playlist.find({ name: iPlaylist.name }).then(

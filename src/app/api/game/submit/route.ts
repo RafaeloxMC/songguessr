@@ -3,6 +3,7 @@ import Song from "@/database/schemas/Song";
 import { IGameRound } from "@/database/schemas/GameSession";
 import { validateToken } from "@/util/accounts/tokens";
 import { gameService } from "@/util/GameService";
+import { UserStatsService } from "@/util/UserStatsService";
 import { GameStatus } from "@/util/enums/GameStatus";
 import { GameMode } from "@/util/enums/GameMode";
 import { Types } from "mongoose";
@@ -218,6 +219,17 @@ export async function POST(request: NextRequest) {
         }
 
         await gameSession.save();
+
+        if (isGameComplete) {
+            try {
+                await UserStatsService.updateUserStatsAfterGame(
+                    user._id,
+                    gameSession._id
+                );
+            } catch (statsError) {
+                console.error("Error updating user stats:", statsError);
+            }
+        }
 
         return NextResponse.json({
             success: true,
