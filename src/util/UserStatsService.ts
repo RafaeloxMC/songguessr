@@ -4,7 +4,6 @@ import GameSession, {
     IGameSession,
     IGameRound,
 } from "@/database/schemas/GameSession";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Playlist, { IPlaylist } from "@/database/schemas/Playlist";
 import { GameStatus } from "@/util/enums/GameStatus";
 import { Types } from "mongoose";
@@ -135,6 +134,8 @@ export class UserStatsService {
     ): Promise<GameHistoryItem[]> {
         try {
             await connectDB();
+
+            void Playlist;
 
             const gameHistory = await GameSession.find({
                 userId: userId,
