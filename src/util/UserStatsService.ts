@@ -4,7 +4,8 @@ import GameSession, {
     IGameSession,
     IGameRound,
 } from "@/database/schemas/GameSession";
-import { IPlaylist } from "@/database/schemas/Playlist";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import Playlist, { IPlaylist } from "@/database/schemas/Playlist";
 import { GameStatus } from "@/util/enums/GameStatus";
 import { Types } from "mongoose";
 
