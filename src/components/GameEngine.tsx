@@ -79,6 +79,11 @@ const GameEngine = ({ gameMode, playlistId }: GameEngineProps) => {
         alreadyPlayedSongIds: new Set(),
     });
 
+    const [gameSessionId, setGameSessionId] = React.useState<string | null>(
+        null
+    );
+    const [sessionError, setSessionError] = React.useState<string | null>(null);
+
     const playbackDurations = [1, 3, 5, 10, 15];
     const decodedPlaylist = decodeURIComponent(playlistId);
 
@@ -379,8 +384,49 @@ const GameEngine = ({ gameMode, playlistId }: GameEngineProps) => {
         };
     }, []);
 
-    const startNewRound = useCallback(() => {
+    const createGameSession = async () => {
+        try {
+            const token = localStorage.getItem("token");
+
+            const response = await fetch("/api/game/start", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: token || "",
+                },
+                body: JSON.stringify({
+                    playlistId: decodedPlaylist,
+                    gameMode: gameMode,
+                    totalRounds: gameState.totalRounds,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setGameSessionId(data.gameSession.id);
+                setSessionError(null);
+                return true;
+            } else {
+                setSessionError(data.error || "Failed to create game session");
+                return false;
+            }
+        } catch (error) {
+            console.error("Error creating game session:", error);
+            setSessionError("Failed to create game session");
+            return false;
+        }
+    };
+
+    const startNewRound = useCallback(async () => {
         if (!playlist_data) return;
+
+        if (gameState.currentRound === 1 && !gameSessionId) {
+            const sessionCreated = await createGameSession();
+            if (!sessionCreated) {
+                return;
+            }
+        }
 
         const newSongId = getRandomSong(playlist_data);
         if (!newSongId) return;
@@ -435,6 +481,7 @@ const GameEngine = ({ gameMode, playlistId }: GameEngineProps) => {
         getRandomSong,
         playlist_data,
         songData?.startingOffset,
+        gameSessionId,
     ]);
 
     const repeatCurrentStage = () => {
@@ -503,7 +550,6 @@ const GameEngine = ({ gameMode, playlistId }: GameEngineProps) => {
         const normalizedGuess = normalizeString(gameState.userGuess);
         let isCorrect = false;
 
-        // Check based on game mode
         if (gameMode === GameMode.CLASSIC) {
             const normalizedTitle = normalizeString(gameState.currentSongTitle);
             isCorrect = normalizedGuess === normalizedTitle;
@@ -688,6 +734,23 @@ const GameEngine = ({ gameMode, playlistId }: GameEngineProps) => {
                 {/* Game Setup */}
                 {gameState.gameStatus === "setup" && (
                     <div className="text-center mb-6">
+                        {sessionError && (
+                            <Card variant="accent" className="mb-6 text-center">
+                                <div className="text-4xl mb-4">⚠️</div>
+                                <h3 className="text-xl font-bold mb-2">
+                                    Session Error
+                                </h3>
+                                <p className="text-sm mb-4">{sessionError}</p>
+                                <Button
+                                    label="Retry"
+                                    onClick={() => {
+                                        setSessionError(null);
+                                        createGameSession();
+                                    }}
+                                    variant="primary"
+                                />
+                            </Card>
+                        )}
                         <Card variant="primary" className="mb-6 p-8">
                             <div className="text-6xl mb-6 animate-bounce">
                                 🎮
@@ -730,7 +793,6 @@ const GameEngine = ({ gameMode, playlistId }: GameEngineProps) => {
                                 </div>
                             </div>
                         </Card>
-
                         <Button
                             label={
                                 isLoading

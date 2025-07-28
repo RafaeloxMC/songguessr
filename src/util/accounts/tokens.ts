@@ -1,4 +1,5 @@
 import { IUser } from "@/database/schemas/User";
+import { Types } from "mongoose";
 import * as jose from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -54,13 +55,36 @@ export async function validateToken(
             "_id" in payload &&
             "password" in payload
         ) {
+            let userIdString: string;
+            if (typeof payload._id === "string") {
+                userIdString = payload._id;
+            } else if (
+                payload._id &&
+                typeof payload._id === "object" &&
+                "buffer" in payload._id
+            ) {
+                const bufferArray = Object.values(
+                    (payload._id as { buffer: { [key: string]: number } })
+                        .buffer as { [key: string]: number }
+                ) as number[];
+                const buffer = Buffer.from(bufferArray);
+                userIdString = new Types.ObjectId(buffer).toString();
+            } else {
+                throw new Error("Invalid user ID format in token");
+            }
+
+            if (!Types.ObjectId.isValid(userIdString)) {
+                throw new Error("Invalid ObjectId format");
+            }
+
             return {
-                _id: payload._id as string,
+                _id: userIdString,
                 password: payload.password as string,
             } as unknown as IUser;
         }
         return null;
-    } catch {
+    } catch (error) {
+        console.error("Error validating token:", error);
         return null;
     }
 }

@@ -30,6 +30,9 @@ export async function GET() {
             await connectDB();
             const userId = new Types.ObjectId(buffer);
             user = (await User.findOne({ _id: userId })) ?? user;
+        } else {
+            await connectDB();
+            user = (await User.findOne({ _id: user._id })) ?? user;
         }
     } catch (error) {
         console.error("Error converting buffer to ObjectId:", error);

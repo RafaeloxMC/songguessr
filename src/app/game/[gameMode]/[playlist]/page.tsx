@@ -1,5 +1,5 @@
 "use client";
-import GameEngine from "@/components/GameEngine";
+import SecureGameEngine from "@/components/SecureGameEngine";
 import { GameMode } from "@/util/enums/GameMode";
 import { redirect } from "next/navigation";
 import React from "react";
@@ -27,7 +27,12 @@ const GamePage = ({ params }: GamePageProps) => {
         return null;
     }
 
-    return <GameEngine gameMode={gameMode as GameMode} playlistId={playlist} />;
+    return (
+        <SecureGameEngine
+            gameMode={gameMode as GameMode}
+            playlistId={playlist}
+        />
+    );
 };
 
 export default GamePage;
