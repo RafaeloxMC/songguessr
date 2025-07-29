@@ -22,6 +22,12 @@ const Navbar = () => {
                         Playlists
                     </Link>
                     <Link
+                        href="/leaderboard"
+                        className="hover:underline navbar-link"
+                    >
+                        Leaderboard
+                    </Link>
+                    <Link
                         href="/dashboard"
                         className="hover:underline navbar-link"
                     >
